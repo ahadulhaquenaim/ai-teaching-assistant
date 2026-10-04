@@ -30,9 +30,10 @@ HERO = """
 <section class="hero">
   <div class="hero-copy">
     <p class="brand"><span class="brand-mark" aria-hidden="true"></span>AI Teaching Assistant</p>
-    <h1 class="hero-title">Ask your course notes anything. Every answer shows its page.</h1>
-    <p class="hero-lede">Upload the PDFs and DOCX files from your course. The assistant answers your
-      questions from them, cites the pages it used, and writes quizzes so you can check what stuck.</p>
+    <h1 class="hero-title">Study smarter with answers grounded in your own material.</h1>
+    <p class="hero-lede">Upload your course PDFs and DOCX files and get clear answers drawn from them,
+      with page references so you can check every point. Then turn any document into a quiz
+      and see how much you really know.</p>
     <div class="hero-actions">
       <a class="btn-primary" href="documents" target="_self">Upload a document</a>
       <a class="btn-quiet" href="chat" target="_self">Open chat</a>
