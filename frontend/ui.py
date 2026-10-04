@@ -8,6 +8,42 @@ import streamlit as st
 
 import api_client
 
+# Small layer on top of .streamlit/config.toml: things the theme can't express.
+STYLE = """
+<style>
+/* Comfortable reading width for every page. */
+[data-testid="stMainBlockContainer"] { max-width: 1120px; padding-top: 4.5rem; }
+
+/* Home hero */
+.hero-title { font-family: Literata, serif; font-weight: 600; font-size: clamp(2rem, 4vw, 2.9rem);
+  line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 0.75rem; color: #1E2A4A; max-width: 24ch; }
+.hero-lede { font-size: 1.125rem; line-height: 1.6; color: #46526F; max-width: 60ch; margin: 0; }
+/* Streamlit's own h1 rules zero the margin; this beats them. */
+[data-testid="stMainBlockContainer"] p.hero-lede { margin-top: 1.25rem; }
+
+/* Step cards: equal height, link pinned to the bottom. */
+[class*="st-key-step-"] { height: 100%; background: #FFFFFF; border: 1px solid #D9DEEA;
+  border-radius: 0.75rem; padding: 1.5rem 1.5rem 1.1rem; }
+[data-testid="stColumn"]:has([class*="st-key-step-"]) > div { height: 100%; }
+[class*="st-key-step-"] > div:last-child { margin-top: auto; }
+[class*="st-key-step-"] [data-testid="stPageLink-NavLink"] { padding-left: 0; }
+[class*="st-key-step-"] [data-testid="stPageLink-NavLink"] * { color: #2F4BD8; font-weight: 700; }
+.step-num { display: inline-block; font-family: Literata, serif; font-weight: 600; font-size: 1.5rem;
+  line-height: 1; padding: 0.15em 0.35em; margin-bottom: 0.6rem; color: #1E2A4A;
+  background: linear-gradient(100deg, transparent 2%, #FFE45C 6%, #FFE45C 92%, transparent 97%); }
+.step-title { font-family: Literata, serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 0.4rem; }
+.step-body { color: #46526F; line-height: 1.55; margin: 0; }
+
+/* Keyboard focus stays visible on links and buttons. */
+a:focus-visible, button:focus-visible { outline: 2px solid #2F4BD8; outline-offset: 2px; }
+</style>
+"""
+
+
+def apply_style() -> None:
+    st.html(STYLE)
+
+
 STATUS_BADGE = {
     "ready": ("Ready", "green", ":material/check_circle:"),
     "processing": ("Processing", "orange", ":material/progress_activity:"),

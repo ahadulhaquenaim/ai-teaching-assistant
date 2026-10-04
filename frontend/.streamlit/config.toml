@@ -2,5 +2,29 @@
 # Uploads are validated again by the backend (MAX_UPLOAD_SIZE_MB).
 maxUploadSize = 25
 
+# "Study desk" theme: ink-blue on cool paper, highlighter yellow used only for
+# step marks (see ui.apply_style). Literata for headings, Atkinson Hyperlegible
+# Next for body text (built for readability).
 [theme]
-primaryColor = "#4F46E5"
+base = "light"
+primaryColor = "#2F4BD8"
+backgroundColor = "#F6F7FB"
+secondaryBackgroundColor = "#ECEFF6"
+textColor = "#1E2A4A"
+borderColor = "#D9DEEA"
+linkColor = "#2F4BD8"
+baseRadius = "0.6rem"
+font = "'Atkinson Hyperlegible Next':https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap"
+headingFont = "Literata:https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap"
+headingFontWeights = [600, 600, 600, 600, 600, 600]
+baseFontSize = 16
+showSidebarBorder = false
+
+[theme.sidebar]
+backgroundColor = "#1E2A4A"
+secondaryBackgroundColor = "#2B3A62"
+textColor = "#E6EAF5"
+borderColor = "#34446F"
+primaryColor = "#4A63E6"
+linkColor = "#C9D3FF"
+headingFont = "Literata:https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap"
