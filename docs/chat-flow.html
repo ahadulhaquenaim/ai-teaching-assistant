@@ -4,28 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chat Flow</title>
-<style>
-  body { font-family: system-ui, sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1rem; color: #222; line-height: 1.55; }
-  h1 { margin-bottom: .2rem; }
-  h2 { margin-top: 2.5rem; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: .3rem; }
-  .sub { color: #666; margin-bottom: 1.5rem; }
-  pre { background: #f6f8fa; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: .86rem; line-height: 1.5; }
-  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-top: .5rem; }
-  th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
-  th { background: #f0f0f0; }
-  ul { padding-left: 1.2rem; }
-  li { margin-bottom: .3rem; }
-  .core { background: #e9f8ee; border: 1px solid #6cc08a; border-radius: 8px; padding: .8rem 1rem; margin-top: 2rem; }
-  .note { font-size: .85rem; color: #666; margin-top: 2rem; }
-</style>
+<link rel="stylesheet" href="style.css">
+<script src="docs.js" defer></script>
 </head>
 <body>
+<div class="page">
+<nav class="docnav" aria-label="Project docs"><a href="project-flow.html">Project flow</a><a href="ingestion-flow.html">Ingestion</a><a href="chunking-strategy.html">Chunking</a><a href="chat-flow.html" aria-current="page">Chat</a><a href="quiz-flow.html">Quiz</a></nav>
 
 <h1>Chat Flow</h1>
-<div class="sub">From the moment you press send to the answer on screen</div>
+<p class="sub">From the moment you press send to the answer on screen</p>
 
 <h2>The flow</h2>
-<pre>
+<div class="trace-key"><span><i style="background:#FFE45C"></i>LLM call</span><span><i style="background:#7BE0A6"></i>MongoDB / Pinecone</span><span><i style="background:#9FB3FF"></i>Other tool or service</span></div>
+<pre class="trace">
 ┌─ 1. USER sends question (Streamlit)
 │      POST /chat/sessions/{id}/messages  (text + web-search toggle)
 │
@@ -94,7 +85,7 @@
   <tr><td>Nothing found, retry</td><td>2</td><td>+2 (rephrase, grade)</td></tr>
   <tr><td>Web search ON</td><td>same</td><td>+2 (search query, web grade)</td></tr>
 </table>
-<p class="note" style="margin-top:.4rem">Gemini free tier is about 5 requests per minute, so a turn can take seconds to tens of seconds.</p>
+<p class="note tight">Gemini free tier is about 5 requests per minute, so a turn can take seconds to tens of seconds.</p>
 
 <h2>If something fails</h2>
 <ul>
@@ -108,5 +99,6 @@
 
 <p class="note">Code: <code>backend/app/api/chat.py</code>, <code>backend/app/services/chat.py</code>, <code>backend/app/graphs/qa_graph.py</code>. Prompts: <code>backend/app/prompts/qa.py</code>, <code>web.py</code>. Settings (top_k, history size, web limit): <code>backend/app/config.py</code>.</p>
 
+</div>
 </body>
 </html>
