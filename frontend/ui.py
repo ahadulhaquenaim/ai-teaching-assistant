@@ -12,43 +12,74 @@ import api_client
 STYLE = """
 <style>
 /* Comfortable reading width for every page. */
-[data-testid="stMainBlockContainer"] { max-width: 1120px; padding-top: 4.5rem; }
+[data-testid="stMainBlockContainer"] { max-width: 1180px; padding-top: 3rem; }
 
-/* Home hero: blue panel, copy on the left, notes-page illustration on the right. */
-.hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: center; gap: 2rem;
-  background: #2F4BD8; color: #FFFFFF; border-radius: 1.25rem; padding: clamp(1.75rem, 4vw, 3.25rem);
-  overflow: hidden; }
+/* Home hero: promise and actions on the left, a preview of a cited answer on the right.
+   Sized to fit above the fold on a laptop screen. */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center;
+  gap: clamp(1.5rem, 4vw, 3.5rem); padding: 0.5rem 0 1.75rem; }
+.brand { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 1.4rem; font-family: Literata, serif;
+  font-weight: 600; font-size: 1.05rem; color: #1E2A4A; }
+/* A page with a folded corner: ink square, highlighter fold. */
+.brand-mark { width: 1.6rem; height: 1.6rem; border-radius: 0.35rem; flex: none;
+  background: linear-gradient(225deg, #FFE45C 0 28%, #1E2A4A 28% 100%); }
 [data-testid="stMainBlockContainer"] h1.hero-title { font-family: Literata, serif; font-weight: 600;
-  font-size: clamp(2rem, 4vw, 3rem); line-height: 1.12; letter-spacing: -0.01em; margin: 0; padding: 0;
-  color: #FFFFFF; max-width: 18ch; }
-[data-testid="stMainBlockContainer"] p.hero-lede { font-size: 1.125rem; line-height: 1.6; color: #DCE3FF;
-  max-width: 46ch; margin: 1.25rem 0 1.75rem; }
-.hero-cta { display: inline-block; background: #FFE45C; color: #1E2A4A !important; font-weight: 700;
-  text-decoration: none !important; padding: 0.8rem 1.4rem; border-radius: 0.7rem;
-  box-shadow: 0 4px 0 #C9A800; transition: transform 0.1s ease, box-shadow 0.1s ease; }
-.hero-cta:hover { transform: translateY(-1px); box-shadow: 0 5px 0 #C9A800; }
-.hero-cta:active { transform: translateY(3px); box-shadow: 0 1px 0 #C9A800; }
-.hero-art { width: 100%; max-width: 380px; justify-self: end; }
-@media (max-width: 760px) {
+  font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.1; letter-spacing: -0.015em; margin: 0; padding: 0;
+  color: #1E2A4A; max-width: 19ch; }
+[data-testid="stMainBlockContainer"] p.hero-lede { font-size: 1.1rem; line-height: 1.6; color: #46526F;
+  max-width: 48ch; margin: 1.1rem 0 1.6rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.hero-actions a { display: inline-block; font-weight: 700; text-decoration: none !important;
+  padding: 0.75rem 1.3rem; border-radius: 0.65rem; transition: background 0.15s ease, border-color 0.15s ease; }
+.btn-primary { background: #2F4BD8; color: #FFFFFF !important; border: 1.5px solid #2F4BD8; }
+.btn-primary:hover { background: #2238B0; border-color: #2238B0; }
+.btn-quiet { color: #1E2A4A !important; border: 1.5px solid #C5CDE3; background: #FFFFFF; }
+.btn-quiet:hover { border-color: #1E2A4A; }
+
+/* Preview: an ink "window" holding one chat turn and one quiz question. */
+.preview { background: #1E2A4A; color: #E6EAF5; border-radius: 1.1rem; padding: 1.1rem 1.1rem 1.25rem;
+  font-size: 0.93rem; line-height: 1.5; box-shadow: 0 24px 48px -28px rgba(30, 42, 74, 0.7); }
+.preview p { margin: 0; }
+.preview-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem 0.9rem;
+  margin-bottom: 0.9rem; border-bottom: 1px solid #34446F; font-size: 0.82rem; color: #AEB8D6; }
+.preview-bar .ready { color: #7BE0A6; font-weight: 700; }
+.preview-bar .ready::before { content: ""; display: inline-block; width: 0.45rem; height: 0.45rem;
+  border-radius: 50%; background: #7BE0A6; margin-right: 0.4rem; vertical-align: 0.08rem; }
+.msg { border-radius: 0.8rem; padding: 0.7rem 0.9rem; margin-bottom: 0.6rem; }
+.msg-user { background: #2F4BD8; color: #FFFFFF; margin-left: auto; width: fit-content; max-width: 85%; }
+.msg-ai { background: #2B3A62; max-width: 92%; }
+.cites { display: flex; gap: 0.4rem; margin-top: 0.55rem !important; }
+/* The one animated moment: highlighter swipes across each citation once. */
+.cite { font-weight: 700; font-size: 0.8rem; color: #1E2A4A; padding: 0.12rem 0.55rem; border-radius: 0.3rem;
+  background: linear-gradient(#FFE45C, #FFE45C) no-repeat left / 100% 100%, #C9D1E6;
+  animation: swipe 0.5s ease-out 0.5s both; }
+.cite + .cite { animation-delay: 0.8s; }
+@keyframes swipe { from { background-size: 0% 100%, auto; } }
+.quiz { background: #F6F7FB; color: #1E2A4A; border-radius: 0.8rem; padding: 0.8rem 0.9rem; margin-top: 0.9rem; }
+.quiz-q { font-weight: 700; margin-bottom: 0.5rem !important; }
+.opt { border: 1px solid #D9DEEA; background: #FFFFFF; border-radius: 0.5rem; padding: 0.35rem 0.7rem;
+  margin-top: 0.35rem !important; color: #46526F; }
+.opt-right { border-color: #7BE0A6; background: #E8FAF0; color: #1E2A4A; font-weight: 700; }
+.opt-right::after { content: "Correct"; float: right; font-size: 0.78rem; color: #1E7A4C; }
+@media (prefers-reduced-motion: reduce) { .cite { animation: none; } }
+@media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; }
-  .hero-art { max-width: 300px; justify-self: center; }
 }
 
-/* Step cards: one highlighter colour each, equal height, link pinned to the bottom. */
-.st-key-step-1 { --hl: #7CC4FF; --tint: #EAF5FF; --edge: #BFE0FF; }
-.st-key-step-2 { --hl: #FFE45C; --tint: #FFF8D6; --edge: #F5E28A; }
-.st-key-step-3 { --hl: #FF8FB8; --tint: #FFEEF4; --edge: #FBC6DA; }
-[class*="st-key-step-"] { height: 100%; background: var(--tint); border: 1px solid var(--edge);
-  border-radius: 1rem; padding: 1.5rem 1.5rem 1.1rem; }
-[data-testid="stColumn"]:has([class*="st-key-step-"]) > div { height: 100%; }
-[class*="st-key-step-"] > div:last-child { margin-top: auto; }
-[class*="st-key-step-"] [data-testid="stPageLink-NavLink"] { padding-left: 0; }
-[class*="st-key-step-"] [data-testid="stPageLink-NavLink"] * { color: #1E2A4A; font-weight: 700; }
-.step-num { display: inline-block; font-family: Literata, serif; font-weight: 600; font-size: 1.5rem;
-  line-height: 1; padding: 0.15em 0.4em; margin-bottom: 0.6rem; color: #1E2A4A; background: var(--hl);
-  transform: rotate(-3deg); border-radius: 0.2em; }
-.step-title { font-family: Literata, serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 0.4rem; }
-.step-body { color: #46526F; line-height: 1.55; margin: 0; }
+/* How it works: one slim strip, steps separated by rules rather than boxed. */
+.st-key-steps { border-top: 1px solid #D9DEEA; padding-top: 1.25rem; }
+.st-key-steps [data-testid="stColumn"] + [data-testid="stColumn"] { border-left: 1px solid #D9DEEA;
+  padding-left: 1.5rem; }
+@media (max-width: 640px) {
+  .st-key-steps [data-testid="stColumn"] + [data-testid="stColumn"] { border-left: 0; padding-left: 0; }
+}
+.st-key-steps [data-testid="stPageLink-NavLink"] { padding-left: 0; }
+.st-key-steps [data-testid="stPageLink-NavLink"] * { color: #2F4BD8; font-weight: 700; }
+.step-title { font-family: Literata, serif; font-weight: 600; font-size: 1.15rem; margin: 0 0 0.25rem;
+  display: flex; align-items: center; gap: 0.55rem; }
+.step-num { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  font-size: 0.9rem; background: #FFE45C; color: #1E2A4A; }
+.step-body { color: #46526F; line-height: 1.5; margin: 0; }
 
 /* Chat: input bar shares the content column. */
 [data-testid="stBottomBlockContainer"] { max-width: 1120px; padding-bottom: 1.5rem; }

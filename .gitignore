@@ -8,3 +8,5 @@ venv/
 .ruff_cache/
 frontend/.streamlit/secrets.toml
 .claude/settings.local.json
+# Playwright MCP screenshots and snapshots
+.playwright-mcp/
