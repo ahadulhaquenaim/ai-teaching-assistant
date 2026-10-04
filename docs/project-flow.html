@@ -327,9 +327,10 @@ frontend/            app.py, ui.py, api_client.py, pages/{documents,chat,quiz}.p
 <p>Source: <code>frontend/app.py</code>, <code>ui.py</code>, <code>api_client.py</code>, <code>pages/*</code></p>
 <table>
 <tr><th>File</th><th>Role</th></tr>
-<tr><td><code>app.py</code></td><td>entry; <code>st.navigation</code> over Home, Documents, Chat, Quiz; health probe on Home</td></tr>
+<tr><td><code>app.py</code></td><td>entry; calls <code>apply_style()</code>, then <code>st.navigation</code> over Home, Documents, Chat, Quiz. Home = "AI Teaching Assistant" product hero that fits above the fold: name, headline, "Upload a document" and "Open chat" buttons, and a static preview panel (sample question, answer with Page 3 / Page 7 citations, one quiz question). Below it a slim three-step strip (Upload, Ask, Test yourself) linking to the pages, and a small health caption (warning if the server is down)</td></tr>
 <tr><td><code>api_client.py</code></td><td>all HTTP calls to the backend; raises <code>APIError(status_code, message)</code></td></tr>
-<tr><td><code>ui.py</code></td><td>status badges, source rendering (pages vs web links), document picker remembered in session state</td></tr>
+<tr><td><code>ui.py</code></td><td><code>apply_style()</code> (shared CSS the theme can't express: page width, hero and preview panel, step strip, chat bubbles and input bar), status badges, source rendering (pages vs web links), document picker remembered in session state</td></tr>
+<tr><td><code>.streamlit/config.toml</code></td><td>"study desk" theme: ink-blue sidebar, cool paper background, Literata headings, Atkinson Hyperlegible Next body (Google Fonts); upload cap 25 MB</td></tr>
 <tr><td><code>pages/documents.py</code></td><td>upload form, list with auto-refresh while processing, summary, delete dialog</td></tr>
 <tr><td><code>pages/chat.py</code></td><td>session sidebar, history, web toggle + remaining searches, chat input</td></tr>
 <tr><td><code>pages/quiz.py</code></td><td>generate form, take quiz, results with explanations and source page</td></tr>
@@ -400,6 +401,8 @@ cp backend/.env.example backend/.env   # fill in keys
 <h2 id="changelog">17. Changelog</h2>
 <p>Newest first. One line per flow change.</p>
 <ul class="changelog">
+  <li><b>2026-10-05</b> – Home redesigned as an "AI Teaching Assistant" product page: hero with name, two buttons and a cited-answer/quiz preview replaces the large illustration; step cards become a slim strip so the page fits without scrolling.</li>
+  <li><b>2026-10-05</b> – Frontend look: new theme in <code>.streamlit/config.toml</code>, shared CSS via <code>ui.apply_style()</code>, redesigned Home (blue hero with illustration and upload button, colour-coded step cards, health caption); Chat restyled (user bubbles right, assistant white cards, input bar aligned to content).</li>
   <li><b>2026-10-05</b> – Logging: new <code>LOG_FORMAT</code> setting; default <code>pretty</code> prints colored readable lines (structlog), <code>json</code> keeps one-object-per-line output.</li>
   <li><b>2026-10-04</b> – Initial full-flow document: startup, ingestion, chat graph, web search, quiz graph, data stores, API, frontend.</li>
 </ul>

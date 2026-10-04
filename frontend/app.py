@@ -11,35 +11,67 @@ from __future__ import annotations
 import streamlit as st
 
 import api_client
+from ui import apply_style
 
 st.set_page_config(page_title="AI Teaching Assistant", page_icon=":material/school:", layout="wide")
+apply_style()
+
+STEPS = [
+    ("1", "Upload", "Add a PDF or DOCX. It's indexed in the background.",
+     "documents", "Upload a document", ":material/upload_file:"),
+    ("2", "Ask", "Get answers that cite the pages they come from.",
+     "chat", "Start a chat", ":material/chat:"),
+    ("3", "Test yourself", "Generate a quiz and see an explanation for every answer.",
+     "quiz", "Make a quiz", ":material/quiz:"),
+]
+
+# Left: product name, promise, actions. Right: a preview of a real chat turn and quiz question.
+HERO = """
+<section class="hero">
+  <div class="hero-copy">
+    <p class="brand"><span class="brand-mark" aria-hidden="true"></span>AI Teaching Assistant</p>
+    <h1 class="hero-title">Study smarter with answers grounded in your own material.</h1>
+    <p class="hero-lede">Upload your course PDFs and DOCX files and get clear answers drawn from them,
+      with page references so you can check every point. Then turn any document into a quiz
+      and see how much you really know.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="documents" target="_self">Upload a document</a>
+      <a class="btn-quiet" href="chat" target="_self">Open chat</a>
+    </div>
+  </div>
+  <div class="preview" role="img" aria-label="Example: a question about the notes, an answer citing pages 3 and 7, and a quiz question">
+    <div class="preview-bar"><span class="file">software-design-notes.pdf</span><span class="ready">Ready</span></div>
+    <div class="msg msg-user">Why is constructor injection easier to test?</div>
+    <div class="msg msg-ai">
+      <p>The class receives its dependencies instead of creating them, so a test can pass in a fake
+        repository. The notes walk through this with a mock database.</p>
+      <p class="cites"><span class="cite">Page 3</span><span class="cite">Page 7</span></p>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q">Question 1 of 5: Which change makes <b>OrderService</b> easiest to test?</p>
+      <p class="opt">Create the database inside the constructor</p>
+      <p class="opt opt-right">Pass the repository into the constructor</p>
+    </div>
+  </div>
+</section>
+"""
 
 
 def home() -> None:
-    st.title(":material/school: AI Teaching Assistant")
-    st.write(
-        "Upload a PDF or DOCX, chat with it, and generate quizzes. "
-        "Answers are grounded in your document with page citations."
-    )
-    col1, col2, col3 = st.columns(3)
-    with col1, st.container(border=True):
-        st.markdown("**1. Upload**")
-        st.caption("Add course material on the Documents page. Processing runs in the background.")
-        st.page_link(documents_page, label="Go to Documents", icon=":material/description:")
-    with col2, st.container(border=True):
-        st.markdown("**2. Chat**")
-        st.caption("Ask questions. Optionally search the web for extra, clearly labeled context.")
-        st.page_link(chat_page, label="Go to Chat", icon=":material/chat:")
-    with col3, st.container(border=True):
-        st.markdown("**3. Quiz**")
-        st.caption("Generate MCQ or short-answer quizzes and get scored with explanations.")
-        st.page_link(quiz_page, label="Go to Quiz", icon=":material/quiz:")
+    st.html(HERO)
 
-    st.divider()
+    pages = {"documents": documents_page, "chat": chat_page, "quiz": quiz_page}
+    with st.container(key="steps"):
+        for col, (num, title, body, page, cta, icon) in zip(st.columns(3, gap="large"), STEPS):
+            with col:
+                st.html(f'<p class="step-title"><span class="step-num">{num}</span>{title}</p>'
+                        f'<p class="step-body">{body}</p>')
+                st.page_link(pages[page], label=cta, icon=icon)
+
     with st.spinner("Connecting to the server..."):
         try:
             status = api_client.health()
-            st.success(f"Server is up (version {status['version']}).", icon=":material/cloud_done:")
+            st.caption(f":green[:material/cloud_done:] Server is up (version {status['version']})")
         except api_client.APIError as exc:
             st.warning(f"Server status: {exc.message}", icon=":material/cloud_off:")
 
@@ -49,7 +81,10 @@ documents_page = st.Page("pages/documents.py", title="Documents", icon=":materia
 chat_page = st.Page("pages/chat.py", title="Chat", icon=":material/chat:")
 quiz_page = st.Page("pages/quiz.py", title="Quiz", icon=":material/quiz:")
 
-with st.sidebar:
-    st.caption(":material/person: Local dev user · sign-in disabled")
+# Rendered before the page so it always shows; CSS (ui.STYLE) pins it to the sidebar bottom,
+# below anything a page adds (e.g. the chat list).
+with st.sidebar.container(key="side-footer"):
+    st.html('<div class="side-user"><span class="side-avatar" aria-hidden="true">LD</span>'
+            '<div><p class="side-name">Local dev user</p><p class="side-note">Sign-in is off</p></div></div>')
 
 st.navigation([home_page, documents_page, chat_page, quiz_page]).run()
