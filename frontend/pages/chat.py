@@ -82,16 +82,15 @@ for m in messages:
                 st.caption(":material/travel_explore: Web search was on for this answer")
 
 # ------------------------------------------------------------------- input
-controls = st.columns([3, 2], vertical_alignment="center")
-with controls[0]:
+with st.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="center"):
     web_search = st.toggle("Search the web", key="web_search_toggle",
                            help="Adds clearly labeled web context. The document stays the primary source.")
-with controls[1]:
     try:
         usage = api_client.web_search_usage()
-        st.caption(f":material/travel_explore: {usage['remaining']} of {usage['limit']} web searches left today")
+        st.caption(f":material/travel_explore: {usage['remaining']} of {usage['limit']} web searches left today",
+                   width="content")
     except api_client.APIError:
-        st.caption("Web search usage unavailable")
+        st.caption("Web search usage unavailable", width="content")
 
 question = st.chat_input("Ask a question about your document")
 if question:

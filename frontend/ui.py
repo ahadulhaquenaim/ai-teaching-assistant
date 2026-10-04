@@ -34,6 +34,27 @@ STYLE = """
 .step-title { font-family: Literata, serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 0.4rem; }
 .step-body { color: #46526F; line-height: 1.55; margin: 0; }
 
+/* Chat: input bar shares the content column. */
+[data-testid="stBottomBlockContainer"] { max-width: 1120px; padding-bottom: 1.5rem; }
+[data-testid="stBottom"] > div { background: #F6F7FB; }
+[data-testid="stChatInput"] > div { background: #FFFFFF; border: 1.5px solid #C5CDE3; border-radius: 0.9rem;
+  box-shadow: 0 6px 20px -12px rgba(30, 42, 74, 0.35); }
+[data-testid="stChatInput"] > div:focus-within { border-color: #2F4BD8; }
+[data-testid="stChatInputTextArea"] { color: #1E2A4A; }
+[data-testid="stChatInputSubmitButton"]:not(:disabled) { background: #2F4BD8; color: #FFFFFF; }
+
+/* Chat: user on the right in an ink-tinted bubble, assistant as a white card. */
+[data-testid="stChatMessage"] { border-radius: 0.9rem; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+  flex-direction: row-reverse; margin-left: auto; width: fit-content; max-width: 80%;
+  background: #E3E9FF; border: 1px solid #CBD5FB; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+  margin-right: 0.75rem; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+  background: #FFFFFF; border: 1px solid #D9DEEA; }
+[data-testid="stChatMessageAvatarUser"] { background: #1E2A4A; color: #FFFFFF; }
+[data-testid="stChatMessageAvatarAssistant"] { background: #FFE45C; color: #1E2A4A; }
+
 /* Keyboard focus stays visible on links and buttons. */
 a:focus-visible, button:focus-visible { outline: 2px solid #2F4BD8; outline-offset: 2px; }
 </style>
