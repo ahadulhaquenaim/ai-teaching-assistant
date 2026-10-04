@@ -7,8 +7,8 @@ free tiers: **total cost $0**.
 
 | Layer | Technology (free tier) |
 |---|---|
-| Backend | FastAPI (Python 3.12) on **Render** free web service |
-| Frontend | Streamlit (multipage) on **Streamlit Community Cloud** |
+| Backend | FastAPI (Python 3.12), runs locally (planned: **Render**) |
+| Frontend | Streamlit (multipage), runs locally (planned: **Streamlit Community Cloud**) |
 | Orchestration | LangChain + LangGraph |
 | LLM | **Gemini** (primary) with automatic **OpenRouter** fallback; **Groq** supported |
 | Embeddings | Gemini `gemini-embedding-001`, 768 dimensions |
@@ -16,10 +16,11 @@ free tiers: **total cost $0**.
 | Database | **MongoDB Atlas** M0 (PyMongo async API) |
 | Web search | **DuckDuckGo** via `ddgs` (no API key) |
 
-> **Status: local use only.** Google login and cloud deployment (Render +
-> Streamlit Community Cloud) are planned for a later phase. The deployment files
-> (`render.yaml`, `.python-version`) and the deployment sections below are ready
-> for then. Today the app runs on your machine for one user.
+> **Status: local use only, for now.** Today the app runs on your own machine
+> for one user. We plan to deploy it once we have the budget for hosting.
+> Google login and cloud deployment (Render + Streamlit Community Cloud) will
+> come in that phase. The deployment files (`render.yaml`, `.python-version`)
+> and the deployment sections below are already prepared for it.
 
 ## Quick start (local)
 
@@ -99,6 +100,13 @@ document) `→ generate_questions` (structured output) `→ validate`
 exists, answer supported by the source) `→` regenerate only the invalid
 questions, at most 2 times.
 
+**Detailed flow docs** (open in a browser):
+[project overview](docs/project-flow.html) ·
+[ingestion](docs/ingestion-flow.html) ·
+[chunking strategy](docs/chunking-strategy.html) ·
+[chat](docs/chat-flow.html) ·
+[quiz](docs/quiz-flow.html)
+
 ---
 
 ## Local setup
@@ -128,9 +136,12 @@ cd frontend
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # set BACKEND_URL
 streamlit run app.py                       # http://localhost:8501
 ```
+
+The frontend uses `http://localhost:8000` by default. Only when the backend
+runs somewhere else, copy `.streamlit/secrets.toml.example` to
+`.streamlit/secrets.toml` and set `BACKEND_URL` (or export `BACKEND_URL`).
 
 ### Environment variables
 
@@ -153,9 +164,12 @@ with a clear message, if a selected provider's key is missing.
 ### Tests
 
 ```bash
-cd backend && pytest -q      # 173 tests
-cd frontend && pytest -q     # 15 tests (Streamlit AppTest + API client)
+cd backend && env -u GOOGLE_API_KEY .venv/bin/pytest -q   # 173 tests
+cd frontend && .venv/bin/pytest -q                        # 15 tests (Streamlit AppTest + API client)
 ```
+
+`env -u GOOGLE_API_KEY` stops a key exported by your shell from overriding
+`backend/.env`.
 
 Every external service (LLM, Gemini, Groq, OpenRouter, Pinecone, DuckDuckGo,
 MongoDB) is mocked. A test guard blocks all real network connections, so the
@@ -247,8 +261,9 @@ the delete returns 503 and nothing is removed, so no vectors are orphaned.
   Gemini 3's thinking level for faster answers.
 - **Free-tier limits:** quotas are per model and change over time; check
   aistudio.google.com/rate-limit. In testing, `gemini-3.6-flash` allowed
-  **5 requests per minute**. A chat turn uses 2–5 LLM calls, so rate limits are
-  common, and the OpenRouter fallback takes over automatically.
+  **5 requests per minute**. A chat turn uses 2–5 LLM calls (up to 7 with web
+  search on), so rate limits are common, and the OpenRouter fallback takes over
+  automatically.
 - Google may use free-tier API data to improve its products; don't upload
   confidential documents.
 
@@ -360,7 +375,7 @@ Errors always look like `{"error": {"code": "...", "message": "..."}}`.
 
 ---
 
-## Production checklist *(for when you deploy)*
+## Production checklist *(for when we deploy, once budget allows)*
 
 - [ ] `ENVIRONMENT=production` (hides `/docs`), `LOG_LEVEL=INFO`
 - [ ] `CORS_ORIGINS` set to the exact Streamlit URL
