@@ -30,7 +30,7 @@ STYLE = """
   font-size: clamp(2rem, 3.4vw, 3.2rem); line-height: 1.1; letter-spacing: -0.015em; margin: 0; padding: 0;
   color: #1E2A4A; max-width: 20ch; }
 [data-testid="stMainBlockContainer"] p.hero-lede { font-size: 1.1rem; line-height: 1.6; color: #46526F;
-  max-width: 54ch; margin: 1.1rem 0 1.6rem; }
+  max-width: 54ch; margin: 2.25rem 0 1.6rem; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .hero-actions a { display: inline-block; font-weight: 700; text-decoration: none !important;
   padding: 0.75rem 1.3rem; border-radius: 0.65rem; transition: background 0.15s ease, border-color 0.15s ease; }
