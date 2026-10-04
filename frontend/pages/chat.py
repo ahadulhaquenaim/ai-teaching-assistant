@@ -32,9 +32,9 @@ if doc.get("summary"):
         st.write(doc["summary"])
 
 # ------------------------------------------------------------------ sidebar
-with st.sidebar:
-    st.subheader("Chats")
-    if st.button("New chat", icon=":material/add:", use_container_width=True, type="primary"):
+with st.sidebar.container(key="side-chats"):
+    st.html('<p class="side-heading">Chats</p>')
+    if st.button("New chat", icon=":material/add:", use_container_width=True, key="new-chat"):
         st.session_state.pop(SESSION_KEY, None)
         st.rerun()
     try:
@@ -43,20 +43,25 @@ with st.sidebar:
         show_error(exc)
         sessions = []
     current = st.session_state.get(SESSION_KEY)
-    for s in sessions:
-        cols = st.columns([5, 1], vertical_alignment="center")
-        label = ("▸ " if s["id"] == current else "") + s["title"]
-        if cols[0].button(label, key=f"open-{s['id']}", use_container_width=True):
-            st.session_state[SESSION_KEY] = s["id"]
-            st.rerun()
-        if cols[1].button("", icon=":material/delete:", key=f"delete-{s['id']}", help="Delete chat"):
-            try:
-                api_client.delete_session(s["id"])
-                if current == s["id"]:
-                    st.session_state.pop(SESSION_KEY, None)
-                st.rerun()
-            except api_client.APIError as exc:
-                show_error(exc)
+    if not sessions:
+        st.html('<p class="side-empty">Your chats about this document will show here.</p>')
+    # Row keys carry the state so CSS can mark the open chat (ui.STYLE: .st-key-chatrow-*).
+    with st.container(key="chat-list"):
+        for s in sessions:
+            state = "open" if s["id"] == current else "idle"
+            with st.container(key=f"chatrow-{state}-{s['id']}", horizontal=True, vertical_alignment="center",
+                              gap="small"):
+                if st.button(s["title"], key=f"open-{s['id']}", use_container_width=True, help=s["title"]):
+                    st.session_state[SESSION_KEY] = s["id"]
+                    st.rerun()
+                if st.button("", icon=":material/delete:", key=f"delete-{s['id']}", help="Delete chat"):
+                    try:
+                        api_client.delete_session(s["id"])
+                        if current == s["id"]:
+                            st.session_state.pop(SESSION_KEY, None)
+                        st.rerun()
+                    except api_client.APIError as exc:
+                        show_error(exc)
 
 # ----------------------------------------------------------------- history
 session_id = st.session_state.get(SESSION_KEY)

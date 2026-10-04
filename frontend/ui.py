@@ -120,8 +120,81 @@ STYLE = """
   background: #FFFFFF; color: #2F4BD8 !important; border: 1.5px solid #C5CDE3; text-decoration: none !important; }
 .src-web:hover { border-color: #2F4BD8; background: #F0F3FF; }
 
+/* Sidebar: brand at the top, roomy nav rows, the current page marked with the highlighter
+   (same yellow as the citation chips), and the user card at the bottom. */
+[data-testid="stSidebarContent"] { display: flex; flex-direction: column; min-height: 100%; }
+[data-testid="stSidebarHeader"] { padding: 1.6rem 1.25rem 0.5rem 1.4rem; height: auto; align-items: center; }
+[data-testid="stLogoSpacer"] { display: flex; align-items: center; gap: 0.7rem; flex: 1; }
+[data-testid="stLogoSpacer"]::before { content: ""; width: 1.9rem; height: 1.9rem; border-radius: 0.4rem; flex: none;
+  background: linear-gradient(225deg, #FFE45C 0 28%, #E6EAF5 28% 100%); }
+[data-testid="stLogoSpacer"]::after { content: "AI Teaching Assistant"; font-family: Literata, serif;
+  font-weight: 600; font-size: 1.12rem; line-height: 1.2; color: #FFFFFF; }
+[data-testid="stSidebarNav"] { padding: 1.1rem 0.9rem 0; }
+[data-testid="stSidebarNavItems"] { display: flex; flex-direction: column; gap: 0.2rem; padding: 0; }
+[data-testid="stSidebarNavItems"] li { margin: 0; }
+[data-testid="stSidebarNavLink"] { position: relative; gap: 0.85rem; padding: 0.7rem 0.9rem; border-radius: 0.6rem;
+  height: auto; align-items: center; transition: background 0.15s ease; }
+[data-testid="stSidebarNavLink"] * { line-height: 1.3 !important; }
+[data-testid="stSidebarNavLink"] p { margin: 0; font-size: 1.06rem; font-weight: 500; color: #C3CBE2; }
+[data-testid="stSidebarNavLink"] [data-testid="stIconMaterial"] { font-size: 1.35rem !important; color: #8F9BC0; }
+[data-testid="stSidebarNavLink"]:hover { background: #2B3A62; }
+[data-testid="stSidebarNavLink"]:hover p { color: #FFFFFF; }
+[data-testid="stSidebarNavLink"][aria-current="page"] { background: #2B3A62; }
+[data-testid="stSidebarNavLink"][aria-current="page"] p { color: #FFFFFF; font-weight: 700; }
+[data-testid="stSidebarNavLink"][aria-current="page"] [data-testid="stIconMaterial"] { color: #FFE45C; }
+[data-testid="stSidebarNavLink"][aria-current="page"]::before { content: ""; position: absolute; left: -0.9rem;
+  top: 0.55rem; bottom: 0.55rem; width: 0.3rem; border-radius: 0 0.3rem 0.3rem 0; background: #FFE45C; }
+[data-testid="stSidebarNavSeparator"] { display: none; }
+[data-testid="stSidebarUserContent"] { flex: 1; display: flex; flex-direction: column; padding: 1.25rem 0.9rem 1.25rem; }
+[data-testid="stSidebarUserContent"] > div { flex: 1; display: flex; flex-direction: column; }
+[data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] { flex: 1; }
+/* Footer is rendered first (app.py) but always sits last, at the bottom. */
+[data-testid="stSidebarUserContent"] :has(> .st-key-side-footer) { order: 99; margin-top: auto; }
+.st-key-side-footer { padding-top: 1rem; border-top: 1px solid #34446F; }
+
+/* Chat list (chat page): quiet rows like the nav, the open chat marked like the current page. */
+.st-key-side-chats { gap: 0.5rem; padding-top: 1.1rem; border-top: 1px solid #34446F; }
+.side-heading { margin: 0 0 0.15rem 0.2rem; font-family: Literata, serif; font-weight: 600; font-size: 1.05rem;
+  color: #FFFFFF; }
+.side-empty { margin: 0.2rem 0.2rem 0; font-size: 0.92rem; line-height: 1.45; color: #AEB8D6; }
+.st-key-new-chat button { gap: 0.5rem; padding: 0.6rem 0.9rem; border-radius: 0.6rem;
+  background: transparent; border: 1.5px dashed #4A5A88; color: #E6EAF5; }
+.st-key-new-chat button:hover { border-style: solid; border-color: #FFE45C; color: #FFFFFF; background: transparent; }
+.st-key-new-chat button p { font-size: 1rem; font-weight: 700; }
+.st-key-chat-list { gap: 0.15rem; max-height: 40vh; overflow-y: auto; margin-top: 0.25rem; }
+[class*="st-key-chatrow-"] { position: relative; border-radius: 0.6rem; padding-right: 0.25rem; flex-wrap: nowrap; }
+[class*="st-key-chatrow-"]:hover, .st-key-chat-list [class*="st-key-chatrow-open-"] { background: #2B3A62; }
+[class*="st-key-chatrow-"] button { border: 0; background: transparent; box-shadow: none; min-height: 0; }
+[class*="st-key-chatrow-"] [class*="st-key-open-"] { flex: 1; min-width: 0; }
+[class*="st-key-chatrow-"] [class*="st-key-open-"] button { justify-content: flex-start; padding: 0.6rem 0.75rem; }
+/* Long titles end in an ellipsis: every wrapper between the button and the text must be allowed to shrink. */
+[class*="st-key-chatrow-"] [class*="st-key-open-"] button * { min-width: 0; max-width: 100%; }
+[class*="st-key-chatrow-"] [class*="st-key-open-"] button > div { flex: 1; }
+[class*="st-key-chatrow-"] [class*="st-key-open-"] p { display: block; font-size: 0.98rem; color: #C3CBE2; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[class*="st-key-chatrow-open-"] [class*="st-key-open-"] p { color: #FFFFFF; font-weight: 700; }
+/* Inset (not hanging like the nav marker) because the list scrolls and would clip it. */
+[class*="st-key-chatrow-open-"]::before { content: ""; position: absolute; left: 0; top: 0.55rem; bottom: 0.55rem;
+  width: 0.25rem; border-radius: 0 0.25rem 0.25rem 0; background: #FFE45C; }
+/* Delete stays out of the way until the row is hovered, focused, or open. */
+[class*="st-key-chatrow-"] [class*="st-key-delete-"] { flex: none; width: auto; opacity: 0; transition: opacity 0.15s ease; }
+[class*="st-key-chatrow-"]:hover [class*="st-key-delete-"],
+[class*="st-key-chatrow-"]:focus-within [class*="st-key-delete-"],
+[class*="st-key-chatrow-open-"] [class*="st-key-delete-"] { opacity: 1; }
+[class*="st-key-chatrow-"] [class*="st-key-delete-"] button { padding: 0.35rem 0.45rem; color: #8F9BC0; }
+[class*="st-key-chatrow-"] [class*="st-key-delete-"] button:hover { color: #FF9C9C; background: #34446F; }
+@media (hover: none) { [class*="st-key-chatrow-"] [class*="st-key-delete-"] { opacity: 1; } }
+
+.side-user { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 0.9rem; border-radius: 0.7rem;
+  border: 1px solid #34446F; }
+.side-avatar { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: 50%; flex: none;
+  background: #E6EAF5; color: #1E2A4A; font-weight: 700; font-size: 0.95rem; }
+.side-name { margin: 0; font-weight: 700; font-size: 0.98rem; color: #FFFFFF; }
+.side-note { margin: 0.1rem 0 0; font-size: 0.86rem; color: #AEB8D6; }
+
 /* Keyboard focus stays visible on links and buttons. */
 a:focus-visible, button:focus-visible { outline: 2px solid #2F4BD8; outline-offset: 2px; }
+[data-testid="stSidebar"] a:focus-visible { outline-color: #FFE45C; }
 </style>
 """
 

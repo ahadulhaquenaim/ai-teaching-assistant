@@ -80,7 +80,10 @@ documents_page = st.Page("pages/documents.py", title="Documents", icon=":materia
 chat_page = st.Page("pages/chat.py", title="Chat", icon=":material/chat:")
 quiz_page = st.Page("pages/quiz.py", title="Quiz", icon=":material/quiz:")
 
-with st.sidebar:
-    st.caption(":material/person: Local dev user (sign-in disabled)")
+# Rendered before the page so it always shows; CSS (ui.STYLE) pins it to the sidebar bottom,
+# below anything a page adds (e.g. the chat list).
+with st.sidebar.container(key="side-footer"):
+    st.html('<div class="side-user"><span class="side-avatar" aria-hidden="true">LD</span>'
+            '<div><p class="side-name">Local dev user</p><p class="side-note">Sign-in is off</p></div></div>')
 
 st.navigation([home_page, documents_page, chat_page, quiz_page]).run()
