@@ -4,70 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Teaching Assistant – Project Flow</title>
-<style>
-  :root {
-    --bg: #fafaf7; --card: #ffffff; --ink: #1f2430; --muted: #666d7a; --line: #dcdfe6;
-    --accent: #3b5bdb; --accent-bg: #edf1ff;
-    --fe: #e8f3ff; --api: #eaf7ee; --svc: #fff6e0; --graph: #f3ecff; --ext: #ffe9e9; --db: #e9f6f6;
-    --code-bg: #f1f2f5;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #14161b; --card: #1c1f26; --ink: #e6e8ee; --muted: #9aa1ae; --line: #323744;
-      --accent: #8aa4ff; --accent-bg: #232a45;
-      --fe: #1c2c40; --api: #1b3024; --svc: #3a3118; --graph: #2c2340; --ext: #402424; --db: #1a3434;
-      --code-bg: #262a33;
-    }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1200px; margin: 0 auto; }
-  nav { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 24px 16px; border-right: 1px solid var(--line); }
-  nav h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
-  nav a { display: block; padding: 4px 8px; color: var(--ink); text-decoration: none; border-radius: 6px; font-size: 14px; }
-  nav a:hover { background: var(--accent-bg); }
-  main { padding: 24px 32px 80px; min-width: 0; }
-  h1 { margin: 0 0 4px; font-size: 28px; }
-  h2 { margin: 48px 0 12px; font-size: 22px; padding-top: 8px; border-top: 1px solid var(--line); }
-  h3 { margin: 24px 0 8px; font-size: 17px; }
-  p, li { max-width: 78ch; }
-  .sub { color: var(--muted); margin: 0 0 16px; }
-  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
-  pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow: auto; font-size: 13px; line-height: 1.5; }
-  pre code { padding: 0; background: none; }
-  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; display: block; overflow-x: auto; }
-  th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
-  th { background: var(--accent-bg); }
-  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 0; }
-  .tag { background: var(--accent-bg); color: var(--accent); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
-  .note { border-left: 4px solid var(--accent); background: var(--accent-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
-  .warn { border-left-color: #e8590c; background: #fff4e6; color: #5c2b00; }
-  @media (prefers-color-scheme: dark) { .warn { background: #3a2a18; color: #ffd8b0; } }
-
-  /* flow diagrams */
-  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 14px 0; }
-  .flow.col { flex-direction: column; align-items: flex-start; }
-  .step { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; min-width: 130px; max-width: 260px; font-size: 13px; }
-  .step b { display: block; font-size: 13.5px; margin-bottom: 2px; }
-  .step small { color: var(--muted); display: block; line-height: 1.35; }
-  .step.fe { background: var(--fe); } .step.api { background: var(--api); } .step.svc { background: var(--svc); }
-  .step.graph { background: var(--graph); } .step.ext { background: var(--ext); } .step.db { background: var(--db); }
-  .arrow { align-self: center; color: var(--muted); font-size: 20px; }
-  .branch { border: 1px dashed var(--line); border-radius: 12px; padding: 10px; margin: 6px 0; }
-  .branch > .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
-  .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; margin: 8px 0 16px; }
-  .legend span { padding: 2px 10px; border-radius: 6px; border: 1px solid var(--line); }
-  .changelog li { margin-bottom: 4px; }
-  @media (max-width: 800px) {
-    .layout { grid-template-columns: 1fr; }
-    nav { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-    main { padding: 16px; }
-  }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="layout">
-<nav>
+<nav class="side" aria-label="Contents">
   <h2>Contents</h2>
   <a href="#overview">1. Overview</a>
   <a href="#architecture">2. Architecture</a>
@@ -86,6 +27,13 @@
   <a href="#run">15. Running locally</a>
   <a href="#decisions">16. Decisions</a>
   <a href="#changelog">17. Changelog</a>
+  <div class="group">
+  <h2>Deep dives</h2>
+  <a href="ingestion-flow.html">Ingestion flow</a>
+  <a href="chunking-strategy.html">Chunking strategy</a>
+  <a href="chat-flow.html">Chat flow</a>
+  <a href="quiz-flow.html">Quiz flow</a>
+  </div>
 </nav>
 <main>
 
@@ -93,7 +41,7 @@
 <p class="sub">Upload a PDF/DOCX → chat with it (page citations) → generate quizzes. Last updated: <b>2026-10-05</b>.</p>
 <div class="meta"><span class="tag">FastAPI</span><span class="tag">Streamlit</span><span class="tag">LangChain + LangGraph</span><span class="tag">Gemini + OpenRouter</span><span class="tag">Pinecone</span><span class="tag">MongoDB Atlas</span><span class="tag">DuckDuckGo</span></div>
 
-<div class="note"><b>How to keep this file current:</b> when you change a flow, edit the matching section and add one line to the <a href="#changelog">Changelog</a>. Each section lists the source files it describes, so you know where to look.</div>
+<div class="callout"><b>How to keep this file current:</b> when you change a flow, edit the matching section and add one line to the <a href="#changelog">Changelog</a>. Each section lists the source files it describes, so you know where to look.</div>
 
 <!-- ======================================================= -->
 <h2 id="overview">1. Overview</h2>
@@ -113,9 +61,9 @@
 <!-- ======================================================= -->
 <h2 id="architecture">2. Architecture</h2>
 <div class="legend">
-  <span style="background:var(--fe)">Frontend</span><span style="background:var(--api)">API route</span>
-  <span style="background:var(--svc)">Service</span><span style="background:var(--graph)">LangGraph node</span>
-  <span style="background:var(--db)">Database / vector store</span><span style="background:var(--ext)">External API</span>
+  <span style="background:var(--fe);border-top-color:var(--fe-edge)">Frontend</span><span style="background:var(--api);border-top-color:var(--api-edge)">API route</span>
+  <span style="background:var(--svc);border-top-color:var(--svc-edge)">Service</span><span style="background:var(--graph);border-top-color:var(--graph-edge)">LangGraph node</span>
+  <span style="background:var(--db);border-top-color:var(--db-edge)">Database / vector store</span><span style="background:var(--ext);border-top-color:var(--ext-edge)">External API</span>
 </div>
 <div class="flow">
   <div class="step fe"><b>Streamlit</b><small>app.py, pages/*, api_client.py</small></div><div class="arrow">→ HTTP →</div>
@@ -176,7 +124,7 @@ frontend/            app.py, ui.py, api_client.py, pages/{documents,chat,quiz}.p
   <div class="step svc"><b>Chunk</b><small>1000 chars, 150 overlap, split per page so each chunk = one page</small></div>
 </div>
 <div class="flow">
-  <div class="step ext"><b>Embed batch of 100</b><small>Gemini, 768-dim</small></div><div class="arrow">→</div>
+  <div class="step ext"><b>Embed 100 chunks at a time</b><small>Gemini, 768-dim, sent in sub-batches of 50</small></div><div class="arrow">→</div>
   <div class="step db"><b>Upsert to Pinecone</b><small>namespace = document_id, id = <code>doc#chunkIndex</code></small></div><div class="arrow">↻ per batch →</div>
   <div class="step ext"><b>Summarize</b><small>2-3 sentences from chunks spread across the doc; failure is non-fatal</small></div><div class="arrow">→</div>
   <div class="step db"><b>mark_ready</b><small>page_count, chunk_count, summary</small></div>
@@ -240,7 +188,7 @@ frontend/            app.py, ui.py, api_client.py, pages/{documents,chat,quiz}.p
   <div class="step graph"><b>grade_web_results</b><small>drop &lt;40 chars (heuristic), then LLM relevance</small></div>
 </div>
 <p>Statuses: <code>not_requested</code>, <code>used</code>, <code>no_results</code>, <code>limit_reached</code>, <code>unavailable</code>. The search service never raises; the graph degrades to a document-only answer with a notice.</p>
-<div class="note warn"><b>Untrusted content:</b> web text is placed only inside <code>&lt;untrusted_web_content&gt;</code> and the prompt tells the model to treat it as reference data, never instructions.</div>
+<div class="callout warn"><b>Untrusted content:</b> web text is placed only inside <code>&lt;untrusted_web_content&gt;</code> and the prompt tells the model to treat it as reference data, never instructions.</div>
 
 <!-- ======================================================= -->
 <h2 id="quiz">7. Quiz</h2>
@@ -298,7 +246,7 @@ frontend/            app.py, ui.py, api_client.py, pages/{documents,chat,quiz}.p
 <tr><td><code>users</code></td><td>reserved for the deferred Google login</td><td>unique (google_id)</td></tr>
 </table>
 <h3>Pinecone</h3>
-<p>One index (768-dim, cosine). <b>Namespace = document_id</b>. Vector id = <code>{document_id}#{chunk_index}</code> with metadata page_number + text. Starter plan caps 100 namespaces, so the app caps at 95 documents.</p>
+<p>One index (768-dim, cosine). <b>Namespace = document_id</b>. Vector id = <code>{document_id}#{chunk_index}</code> with metadata document_id, page_number, chunk_index, text. Starter plan caps 100 namespaces, so the app caps at 95 documents.</p>
 
 <!-- ======================================================= -->
 <h2 id="api">10. API reference</h2>
@@ -351,7 +299,7 @@ frontend/            app.py, ui.py, api_client.py, pages/{documents,chat,quiz}.p
 <tr><td>Quiz</td><td>max 10 questions, 2 regeneration rounds, 12 context chunks, 14000 chars</td></tr>
 <tr><td>Web search</td><td>20/day, 5 results, 15 s timeout, 1200 chars/result, cache on</td></tr>
 </table>
-<div class="note warn"><b>Gotcha:</b> a <code>GOOGLE_API_KEY</code> exported in your shell overrides <code>backend/.env</code>. <code>run_local.sh</code> unsets it; in other shells use <code>env -u GOOGLE_API_KEY …</code>.</div>
+<div class="callout warn"><b>Gotcha:</b> a <code>GOOGLE_API_KEY</code> exported in your shell overrides <code>backend/.env</code>. <code>run_local.sh</code> unsets it; in other shells use <code>env -u GOOGLE_API_KEY …</code>.</div>
 
 <!-- ======================================================= -->
 <h2 id="security">13. Security rules</h2>
@@ -365,7 +313,7 @@ frontend/            app.py, ui.py, api_client.py, pages/{documents,chat,quiz}.p
 
 <!-- ======================================================= -->
 <h2 id="tests">14. Tests</h2>
-<p>Run: <code>cd backend &amp;&amp; .venv/bin/pytest</code> and <code>cd frontend &amp;&amp; .venv/bin/pytest</code>. No test calls a real external API; fakes are injected through the service container.</p>
+<p>Run: <code>cd backend &amp;&amp; env -u GOOGLE_API_KEY .venv/bin/pytest</code> and <code>cd frontend &amp;&amp; .venv/bin/pytest</code>. No test calls a real external API; fakes are injected through the service container.</p>
 <table>
 <tr><th>Area</th><th>Files (backend/tests)</th></tr>
 <tr><td>Ingestion</td><td>test_ingestion_unit, test_ingestion_pipeline</td></tr>
@@ -401,6 +349,7 @@ cp backend/.env.example backend/.env   # fill in keys
 <h2 id="changelog">17. Changelog</h2>
 <p>Newest first. One line per flow change.</p>
 <ul class="changelog">
+  <li><b>2026-10-05</b> – Docs restyled to match the app (shared <code>style.css</code> + <code>docs.js</code>, doc switcher, coloured flow traces). Fixed: ingestion batching (100 per pipeline step, embedded in 50s), Pinecone metadata/id, backend test command.</li>
   <li><b>2026-10-05</b> – Home redesigned as an "AI Teaching Assistant" product page: hero with name, two buttons and a cited-answer/quiz preview replaces the large illustration; step cards become a slim strip so the page fits without scrolling.</li>
   <li><b>2026-10-05</b> – Frontend look: new theme in <code>.streamlit/config.toml</code>, shared CSS via <code>ui.apply_style()</code>, redesigned Home (blue hero with illustration and upload button, colour-coded step cards, health caption); Chat restyled (user bubbles right, assistant white cards, input bar aligned to content).</li>
   <li><b>2026-10-05</b> – Logging: new <code>LOG_FORMAT</code> setting; default <code>pretty</code> prints colored readable lines (structlog), <code>json</code> keeps one-object-per-line output.</li>
