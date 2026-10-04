@@ -1,0 +1,56 @@
+# Render Blueprint: free FastAPI web service for the backend.
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
+# Secrets marked `sync: false` are prompted for in the dashboard (never commit them).
+services:
+  - type: web
+    name: ai-teaching-assistant-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # One worker: the free instance has 512 MB RAM, and background ingestion
+    # plus restart recovery assume a single process.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      # Your Streamlit Community Cloud URL, e.g. https://your-app.streamlit.app
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: ai_teaching_assistant
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: LLM_MODEL
+        value: gemini-3.6-flash
+      - key: LLM_FALLBACK_PROVIDER
+        value: openrouter
+      - key: LLM_FALLBACK_MODEL
+        value: openrouter/free
+      - key: LLM_REASONING_EFFORT
+        value: low
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      # Only needed if you switch LLM_PROVIDER / LLM_FALLBACK_PROVIDER to groq.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: EMBEDDING_MODEL
+        value: gemini-embedding-001
+      - key: EMBEDDING_DIMENSION
+        value: "768"
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_INDEX_NAME
+        value: ai-teaching-assistant
+      - key: MAX_UPLOAD_SIZE_MB
+        value: "25"
+      - key: WEB_SEARCH_DAILY_LIMIT
+        value: "20"

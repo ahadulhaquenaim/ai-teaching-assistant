@@ -1,0 +1,6 @@
+[server]
+# Uploads are validated again by the backend (MAX_UPLOAD_SIZE_MB).
+maxUploadSize = 25
+
+[theme]
+primaryColor = "#4F46E5"

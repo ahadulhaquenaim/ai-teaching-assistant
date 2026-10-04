@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingestion Flow</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1rem; color: #222; line-height: 1.55; }
+  h1 { margin-bottom: .2rem; }
+  h2 { margin-top: 2.5rem; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: .3rem; }
+  .sub { color: #666; margin-bottom: 1.5rem; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: .86rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-top: .5rem; }
+  th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: #f0f0f0; }
+  ul { padding-left: 1.2rem; }
+  li { margin-bottom: .3rem; }
+  .core { background: #e9f8ee; border: 1px solid #6cc08a; border-radius: 8px; padding: .8rem 1rem; margin-top: 2rem; }
+  .note { font-size: .85rem; color: #666; margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<h1>Ingestion Flow</h1>
+<div class="sub">From uploading a PDF/DOCX to searchable vectors in Pinecone</div>
+
+<h2>The flow</h2>
+<pre>
+┌─ 1. USER uploads file (Streamlit)
+│      POST /documents  (PDF or DOCX)
+│
+├─ 2. VALIDATE (DocumentService)
+│      - type is PDF or DOCX
+│      - size max 25 MB
+│      - quota: 5 documents per user, 95 total
+│
+├─ 3. CREATE RECORD (MongoDB)
+│      status = "processing", owned by the user
+│      API returns document_id right away
+│      ── everything below runs in the background ──
+│      (UI polls GET /documents/{id} until ready/failed)
+│
+├─ 4. EXTRACT TEXT per page
+│      PDF  → PyMuPDF, one text block per real page
+│      DOCX → split into ~3000-char "pages"
+│      clean text; reject scanned/empty files
+│
+├─ 5. CHUNK each page (RecursiveCharacterTextSplitter)
+│      1000 chars per chunk, 150 overlap
+│      every chunk keeps its page number
+│      → see chunking-strategy.html
+│
+├─ 6. EMBED chunks (gemini-embedding-001, RETRIEVAL_DOCUMENT)
+│      each chunk text → 768-number vector
+│      batches of 50, 1 s pause, retry on rate limit
+│
+├─ 7. UPSERT (Pinecone)
+│      namespace = document_id (one per document)
+│      vector + metadata (text, page_number, chunk_index)
+│
+├─ 8. SUMMARY (LLM)
+│      2-3 sentences from excerpts across the document
+│      (if it fails → document still becomes ready, no summary)
+│
+└─ 9. MARK READY (MongoDB)
+       save page_count, chunk_count, summary
+       status = "ready" → green badge in the UI
+</pre>
+
+<h2>Who does each job</h2>
+<table>
+  <tr><th>Job</th><th>Done by</th></tr>
+  <tr><td>Receive file, return id fast</td><td>FastAPI route (<code>api/documents.py</code>) + background task</td></tr>
+  <tr><td>Validate, quotas, records</td><td><code>DocumentService</code> + MongoDB</td></tr>
+  <tr><td>Extract, chunk, orchestrate pipeline</td><td><code>IngestionService</code> (<code>services/ingestion.py</code>)</td></tr>
+  <tr><td>Read PDF text</td><td>PyMuPDF</td></tr>
+  <tr><td>Read DOCX text</td><td>docx2txt</td></tr>
+  <tr><td>Split text into chunks</td><td>LangChain <code>RecursiveCharacterTextSplitter</code> (no AI model)</td></tr>
+  <tr><td>Chunk → vector</td><td><code>gemini-embedding-001</code></td></tr>
+  <tr><td>Store vectors</td><td>Pinecone</td></tr>
+  <tr><td>Write summary</td><td>LLM (<code>gemini-3.6-flash</code>, fallback OpenRouter <code>openrouter/free</code>)</td></tr>
+</table>
+
+<h2>Example: your CV</h2>
+<table>
+  <tr><th>Pages</th><th>Chunks</th><th>Vectors in Pinecone</th><th>LLM calls</th></tr>
+  <tr><td>2</td><td>8</td><td>8 (one per chunk)</td><td>1 (summary)</td></tr>
+</table>
+
+<h2>If something fails</h2>
+<ul>
+  <li><b>Validation fails:</b> API rejects the upload right away, nothing is stored.</li>
+  <li><b>Scanned / empty / password-protected / corrupt file:</b> document marked "failed" with a clear message.</li>
+  <li><b>Embedding or Pinecone fails after retries:</b> partial vectors are deleted from Pinecone, document marked "failed".</li>
+  <li><b>Summary fails:</b> ignored, document still becomes "ready".</li>
+</ul>
+
+<div class="core">
+  <b>The core idea:</b> the file becomes page text, the page text becomes small overlapping chunks, each chunk becomes a vector, and the vectors are stored in Pinecone under the document's own namespace, ready for chat.
+</div>
+
+<p class="note">Code: <code>backend/app/api/documents.py</code>, <code>backend/app/services/documents.py</code>, <code>backend/app/services/ingestion.py</code>, <code>embeddings.py</code>, <code>vectorstore.py</code>. Settings: <code>backend/app/config.py</code>.</p>
+
+</body>
+</html>

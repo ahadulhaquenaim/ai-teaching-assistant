@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat Flow</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1rem; color: #222; line-height: 1.55; }
+  h1 { margin-bottom: .2rem; }
+  h2 { margin-top: 2.5rem; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: .3rem; }
+  .sub { color: #666; margin-bottom: 1.5rem; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: .86rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-top: .5rem; }
+  th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: #f0f0f0; }
+  ul { padding-left: 1.2rem; }
+  li { margin-bottom: .3rem; }
+  .core { background: #e9f8ee; border: 1px solid #6cc08a; border-radius: 8px; padding: .8rem 1rem; margin-top: 2rem; }
+  .note { font-size: .85rem; color: #666; margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<h1>Chat Flow</h1>
+<div class="sub">From the moment you press send to the answer on screen</div>
+
+<h2>The flow</h2>
+<pre>
+┌─ 1. USER sends question (Streamlit)
+│      POST /chat/sessions/{id}/messages  (text + web-search toggle)
+│
+├─ 2. CHECKS (ChatService + MongoDB)
+│      - session belongs to this user
+│      - document_id read from the session (never from the client)
+│      - document status is "ready"
+│      - load last 8 messages + document summary
+│
+├─ 3. REWRITE (LLM)  ← skipped on the first question
+│      "what about his last job?" → "What did he do at his last job?"
+│
+├─ 4. EMBED the question (gemini-embedding-001, RETRIEVAL_QUERY)
+│      question text → 768-number vector
+│
+├─ 5. RETRIEVE (Pinecone)
+│      cosine similarity, only in this document's namespace
+│      → top 5 chunks (text + page number)
+│
+├─ 6. GRADE (LLM, structured output)
+│      keeps only the chunks that really help
+│      (if grading fails → keep all 5)
+│
+├─ 7. NOTHING RELEVANT?
+│      LLM rephrases the question (using the summary as a hint)
+│      → repeat steps 4-6, once only
+│
+├─ 8. WEB SEARCH (only if toggle is ON)
+│      LLM builds query → DuckDuckGo (max 20/user/day)
+│      → drop short results → LLM keeps relevant ones
+│      web text is sanitized and marked untrusted
+│
+├─ 9. ANSWER (LLM)
+│      prompt = rules + chunks sorted by page [Page N] + question
+│      - answer only from excerpts, cite pages
+│      - no relevant chunk at all → fixed "not covered in the document"
+│      - with web results → document answer first, then labeled web part
+│
+├─ 10. BUILD SOURCES
+│      cited pages (only pages really retrieved) + cited web links
+│      no page cited → list all retrieved pages
+│
+├─ 11. SAVE (MongoDB)
+│      user message + assistant message (with sources)
+│      first question also sets the chat title
+│
+└─ 12. SHOW in the UI
+       answer with page citations (and web links)
+</pre>
+
+<h2>Who does each job</h2>
+<table>
+  <tr><th>Job</th><th>Done by</th></tr>
+  <tr><td>Orchestrate the steps</td><td>LangGraph graph (<code>qa_graph.py</code>)</td></tr>
+  <tr><td>Question → vector</td><td><code>gemini-embedding-001</code></td></tr>
+  <tr><td>Find closest vectors</td><td>Pinecone</td></tr>
+  <tr><td>Rewrite, grade, rephrase, answer</td><td>LLM (<code>gemini-3.6-flash</code>, fallback OpenRouter <code>openrouter/free</code>)</td></tr>
+  <tr><td>Store sessions and messages</td><td>MongoDB</td></tr>
+</table>
+
+<h2>Calls per turn</h2>
+<table>
+  <tr><th>Scenario</th><th>Embedding</th><th>LLM</th></tr>
+  <tr><td>First question</td><td>1</td><td>2 (grade, answer)</td></tr>
+  <tr><td>Follow-up question</td><td>1</td><td>3 (rewrite, grade, answer)</td></tr>
+  <tr><td>Nothing found, retry</td><td>2</td><td>+2 (rephrase, grade)</td></tr>
+  <tr><td>Web search ON</td><td>same</td><td>+2 (search query, web grade)</td></tr>
+</table>
+<p class="note" style="margin-top:.4rem">Gemini free tier is about 5 requests per minute, so a turn can take seconds to tens of seconds.</p>
+
+<h2>If something fails</h2>
+<ul>
+  <li><b>Rewrite or grading fails:</b> the system falls back to the original question or keeps all 5 chunks, and the chat continues.</li>
+  <li><b>Embedding, Pinecone, or the answer call fails after retries:</b> the API returns "temporarily unavailable" and saves nothing, so you can resend cleanly.</li>
+</ul>
+
+<div class="core">
+  <b>The core idea:</b> the question becomes a vector, Pinecone finds the nearest chunks, an LLM filters them, and another LLM writes an answer using only those chunks, with page citations.
+</div>
+
+<p class="note">Code: <code>backend/app/api/chat.py</code>, <code>backend/app/services/chat.py</code>, <code>backend/app/graphs/qa_graph.py</code>. Prompts: <code>backend/app/prompts/qa.py</code>, <code>web.py</code>. Settings (top_k, history size, web limit): <code>backend/app/config.py</code>.</p>
+
+</body>
+</html>

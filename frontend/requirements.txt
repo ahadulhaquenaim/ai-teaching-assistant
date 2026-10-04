@@ -1,0 +1,3 @@
+# Streamlit Community Cloud installs these. Pinned.
+streamlit[auth]==1.65.0
+httpx==0.28.1

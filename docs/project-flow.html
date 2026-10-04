@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Teaching Assistant – Project Flow</title>
+<style>
+  :root {
+    --bg: #fafaf7; --card: #ffffff; --ink: #1f2430; --muted: #666d7a; --line: #dcdfe6;
+    --accent: #3b5bdb; --accent-bg: #edf1ff;
+    --fe: #e8f3ff; --api: #eaf7ee; --svc: #fff6e0; --graph: #f3ecff; --ext: #ffe9e9; --db: #e9f6f6;
+    --code-bg: #f1f2f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161b; --card: #1c1f26; --ink: #e6e8ee; --muted: #9aa1ae; --line: #323744;
+      --accent: #8aa4ff; --accent-bg: #232a45;
+      --fe: #1c2c40; --api: #1b3024; --svc: #3a3118; --graph: #2c2340; --ext: #402424; --db: #1a3434;
+      --code-bg: #262a33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1200px; margin: 0 auto; }
+  nav { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 24px 16px; border-right: 1px solid var(--line); }
+  nav h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+  nav a { display: block; padding: 4px 8px; color: var(--ink); text-decoration: none; border-radius: 6px; font-size: 14px; }
+  nav a:hover { background: var(--accent-bg); }
+  main { padding: 24px 32px 80px; min-width: 0; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  h2 { margin: 48px 0 12px; font-size: 22px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { margin: 24px 0 8px; font-size: 17px; }
+  p, li { max-width: 78ch; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow: auto; font-size: 13px; line-height: 1.5; }
+  pre code { padding: 0; background: none; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; display: block; overflow-x: auto; }
+  th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-bg); }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 0; }
+  .tag { background: var(--accent-bg); color: var(--accent); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+  .note { border-left: 4px solid var(--accent); background: var(--accent-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .warn { border-left-color: #e8590c; background: #fff4e6; color: #5c2b00; }
+  @media (prefers-color-scheme: dark) { .warn { background: #3a2a18; color: #ffd8b0; } }
+
+  /* flow diagrams */
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 14px 0; }
+  .flow.col { flex-direction: column; align-items: flex-start; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; min-width: 130px; max-width: 260px; font-size: 13px; }
+  .step b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+  .step small { color: var(--muted); display: block; line-height: 1.35; }
+  .step.fe { background: var(--fe); } .step.api { background: var(--api); } .step.svc { background: var(--svc); }
+  .step.graph { background: var(--graph); } .step.ext { background: var(--ext); } .step.db { background: var(--db); }
+  .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+  .branch { border: 1px dashed var(--line); border-radius: 12px; padding: 10px; margin: 6px 0; }
+  .branch > .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; margin: 8px 0 16px; }
+  .legend span { padding: 2px 10px; border-radius: 6px; border: 1px solid var(--line); }
+  .changelog li { margin-bottom: 4px; }
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    nav { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+    main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav>
+  <h2>Contents</h2>
+  <a href="#overview">1. Overview</a>
+  <a href="#architecture">2. Architecture</a>
+  <a href="#startup">3. App startup</a>
+  <a href="#upload">4. Upload &amp; ingestion</a>
+  <a href="#chat">5. Chat (Q&amp;A graph)</a>
+  <a href="#web">6. Web search</a>
+  <a href="#quiz">7. Quiz</a>
+  <a href="#llm">8. LLM &amp; retry layer</a>
+  <a href="#data">9. Data stores</a>
+  <a href="#api">10. API reference</a>
+  <a href="#frontend">11. Frontend</a>
+  <a href="#config">12. Configuration</a>
+  <a href="#security">13. Security rules</a>
+  <a href="#tests">14. Tests</a>
+  <a href="#run">15. Running locally</a>
+  <a href="#decisions">16. Decisions</a>
+  <a href="#changelog">17. Changelog</a>
+</nav>
+<main>
+
+<h1>AI Teaching Assistant – Project Flow</h1>
+<p class="sub">Upload a PDF/DOCX → chat with it (page citations) → generate quizzes. Last updated: <b>2026-10-05</b>.</p>
+<div class="meta"><span class="tag">FastAPI</span><span class="tag">Streamlit</span><span class="tag">LangChain + LangGraph</span><span class="tag">Gemini + OpenRouter</span><span class="tag">Pinecone</span><span class="tag">MongoDB Atlas</span><span class="tag">DuckDuckGo</span></div>
+
+<div class="note"><b>How to keep this file current:</b> when you change a flow, edit the matching section and add one line to the <a href="#changelog">Changelog</a>. Each section lists the source files it describes, so you know where to look.</div>
+
+<!-- ======================================================= -->
+<h2 id="overview">1. Overview</h2>
+<table>
+<tr><th>Layer</th><th>Tech</th><th>Where</th></tr>
+<tr><td>Frontend</td><td>Streamlit multipage</td><td><code>frontend/</code></td></tr>
+<tr><td>Backend</td><td>FastAPI, Python 3.12</td><td><code>backend/app/</code></td></tr>
+<tr><td>Orchestration</td><td>LangChain + LangGraph (two graphs)</td><td><code>backend/app/graphs/</code></td></tr>
+<tr><td>LLM</td><td>Gemini <code>gemini-3.6-flash</code> primary; OpenRouter <code>openrouter/free</code> fallback; Groq supported</td><td><code>services/llm.py</code></td></tr>
+<tr><td>Embeddings</td><td>Gemini <code>gemini-embedding-001</code>, 768-dim, cosine</td><td><code>services/embeddings.py</code></td></tr>
+<tr><td>Vector DB</td><td>Pinecone Starter, one index, <b>one namespace per document</b></td><td><code>services/vectorstore.py</code></td></tr>
+<tr><td>Database</td><td>MongoDB Atlas M0 (PyMongo async)</td><td><code>db/</code></td></tr>
+<tr><td>Web search</td><td>DuckDuckGo via <code>ddgs</code>, no key</td><td><code>services/web_search.py</code></td></tr>
+</table>
+<p>Current scope: <b>local use only</b>, one fixed user (<code>local-dev-user</code>). Google login and cloud deploy are parked.</p>
+
+<!-- ======================================================= -->
+<h2 id="architecture">2. Architecture</h2>
+<div class="legend">
+  <span style="background:var(--fe)">Frontend</span><span style="background:var(--api)">API route</span>
+  <span style="background:var(--svc)">Service</span><span style="background:var(--graph)">LangGraph node</span>
+  <span style="background:var(--db)">Database / vector store</span><span style="background:var(--ext)">External API</span>
+</div>
+<div class="flow">
+  <div class="step fe"><b>Streamlit</b><small>app.py, pages/*, api_client.py</small></div><div class="arrow">→ HTTP →</div>
+  <div class="step api"><b>api/</b><small>thin routes: chat, documents, quiz, usage, health</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>services/</b><small>use-cases + external clients</small></div><div class="arrow">→</div>
+  <div class="step graph"><b>graphs/</b><small>QAGraph, QuizGraph</small></div>
+</div>
+<div class="flow">
+  <div class="step svc"><b>services/*</b></div><div class="arrow">→</div>
+  <div class="step db"><b>MongoDB</b><small>documents, chats, quizzes, usage, cache</small></div>
+  <div class="step db"><b>Pinecone</b><small>chunk vectors</small></div>
+  <div class="step ext"><b>Gemini / OpenRouter</b><small>LLM + embeddings</small></div>
+  <div class="step ext"><b>DuckDuckGo</b><small>web results</small></div>
+</div>
+<h3>Folder map</h3>
+<pre><code>backend/app/
+  main.py            app factory + lifespan (builds services, graphs, indexes)
+  config.py          Settings (pydantic-settings, env / .env)
+  api/               routes only: validate input, call a service
+  core/              dependencies (get_current_user), errors, logging middleware
+  services/          llm, embeddings, vectorstore, web_search, ingestion,
+                     documents, chat, quiz, retry, container
+  graphs/            qa_graph.py, quiz_graph.py
+  prompts/           qa.py, web.py, quiz.py, summary.py (all prompts live here)
+  schemas/           Pydantic request/response models
+  db/                mongo.py, indexes.py, repositories/
+frontend/            app.py, ui.py, api_client.py, pages/{documents,chat,quiz}.py</code></pre>
+<p><b>Dependency rule:</b> graphs and services depend on the <code>LLM</code>, <code>Embedder</code>, <code>VectorStore</code>, <code>WebSearcher</code> protocols, never on a provider SDK. Tests inject fakes via <code>create_app(services=…)</code>.</p>
+
+<!-- ======================================================= -->
+<h2 id="startup">3. App startup</h2>
+<p>Source: <code>backend/app/main.py</code>, <code>services/container.py</code></p>
+<div class="flow col">
+  <div class="step api"><b>1. create_app()</b><small>load Settings, configure logging (pretty or JSON per <code>LOG_FORMAT</code>), add CORS + RequestLoggingMiddleware, register error handlers, include routers</small></div>
+  <div class="step db"><b>2. lifespan: mongo.connect()</b></div>
+  <div class="step svc"><b>3. build_services()</b><small>LLMService, GeminiEmbeddingService, PineconeVectorStore, DuckDuckGoProvider → stored on <code>app.state.services</code></small></div>
+  <div class="step svc"><b>4. WebSearchService</b><small>provider + usage repo + cache repo</small></div>
+  <div class="step graph"><b>5. Compile QAGraph and QuizGraph once</b><small>no per-request state inside</small></div>
+  <div class="step db"><b>6. ensure_indexes() + fail_interrupted()</b><small>idempotent indexes; documents stuck in <code>processing</code> after a restart are marked failed</small></div>
+</div>
+<p>If Mongo startup tasks fail, the server keeps running so <code>/health</code> can report <code>degraded</code> (503).</p>
+
+<!-- ======================================================= -->
+<h2 id="upload">4. Upload &amp; ingestion</h2>
+<p>Source: <code>api/documents.py</code>, <code>services/documents.py</code>, <code>services/ingestion.py</code></p>
+<h3>4a. Upload request (synchronous part, returns 202)</h3>
+<div class="flow">
+  <div class="step fe"><b>Documents page</b><small>file_uploader → <code>POST /documents</code></small></div><div class="arrow">→</div>
+  <div class="step svc"><b>validate_upload</b><small>sanitize filename, extension check, read with 25 MB cap, check magic bytes (<code>%PDF-</code> / zip with <code>word/document.xml</code>)</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>create</b><small>quota: ≤5 per user, ≤95 total → insert doc with status <code>processing</code></small></div><div class="arrow">→</div>
+  <div class="step api"><b>202 + id</b><small>BackgroundTask queued with the bytes</small></div>
+</div>
+<h3>4b. Background ingestion pipeline</h3>
+<div class="flow">
+  <div class="step svc"><b>Extract</b><small>PDF: pymupdf per page. DOCX: docx2txt, split into ~3000-char "pages". Runs in a thread.</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>Clean</b><small>re-join hyphenated words, collapse whitespace</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>ensure_has_text</b><small>scanned PDF (&lt;50 chars/page avg) → fail, no OCR</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>Chunk</b><small>1000 chars, 150 overlap, split per page so each chunk = one page</small></div>
+</div>
+<div class="flow">
+  <div class="step ext"><b>Embed batch of 100</b><small>Gemini, 768-dim</small></div><div class="arrow">→</div>
+  <div class="step db"><b>Upsert to Pinecone</b><small>namespace = document_id, id = <code>doc#chunkIndex</code></small></div><div class="arrow">↻ per batch →</div>
+  <div class="step ext"><b>Summarize</b><small>2-3 sentences from chunks spread across the doc; failure is non-fatal</small></div><div class="arrow">→</div>
+  <div class="step db"><b>mark_ready</b><small>page_count, chunk_count, summary</small></div>
+</div>
+<h3>4c. Status polling and failure</h3>
+<ul>
+  <li>Frontend polls <code>GET /documents/{id}</code> every 3 s (<code>st.fragment run_every</code>) until <code>ready</code> or <code>failed</code>.</li>
+  <li>Any <code>IngestionError</code> (scanned, empty, corrupt, password-protected) stores a user-facing message. Unexpected errors store a generic message.</li>
+  <li><code>_fail()</code> deletes already-upserted vectors, then <code>mark_failed</code>.</li>
+  <li>Uploaded bytes live in memory only; never written to disk.</li>
+</ul>
+<h3>4d. Delete</h3>
+<p><code>DELETE /documents/{id}</code>: ownership check → refuse if still <code>processing</code> (409) → delete Pinecone namespace → <code>delete_cascade</code> in Mongo (document, chat sessions/messages, quizzes, attempts).</p>
+
+<!-- ======================================================= -->
+<h2 id="chat">5. Chat (Q&amp;A graph)</h2>
+<p>Source: <code>api/chat.py</code>, <code>services/chat.py</code>, <code>graphs/qa_graph.py</code>, <code>prompts/qa.py</code></p>
+<h3>5a. Request flow</h3>
+<div class="flow">
+  <div class="step fe"><b>Chat page</b><small>chat_input + "Search the web" toggle</small></div><div class="arrow">→</div>
+  <div class="step api"><b>POST /chat/sessions</b><small>only if no session yet (needs a ready doc)</small></div><div class="arrow">→</div>
+  <div class="step api"><b>POST /chat/sessions/{id}/messages</b></div><div class="arrow">→</div>
+  <div class="step svc"><b>ChatService.send_message</b><small>owned session → document id from DB (never client) → last 8 messages → run graph</small></div>
+</div>
+<div class="flow">
+  <div class="step graph"><b>QAGraph.run</b></div><div class="arrow">→</div>
+  <div class="step svc"><b>Persist user + assistant messages</b><small>only after success, so a failed turn retries cleanly</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>Touch session</b><small>first question becomes the title (≤60 chars)</small></div>
+</div>
+<h3>5b. Q&amp;A graph</h3>
+<div class="flow">
+  <div class="step graph"><b>rewrite_query</b><small>follow-up → standalone question. Skipped (no LLM call) if no history.</small></div><div class="arrow">→</div>
+  <div class="step graph"><b>retrieve_document</b><small>embed question, Pinecone top-5 in the doc's namespace</small></div><div class="arrow">→</div>
+  <div class="step graph"><b>grade_documents</b><small>one LLM call keeps relevant chunk ids. On LLM error keep all.</small></div>
+</div>
+<div class="branch"><div class="label">route_after_grading</div>
+  <div class="flow">
+    <div class="step graph"><b>No relevant chunks and retries &lt; 1</b><small>→ rephrase_query (uses doc summary) → back to retrieve_document</small></div>
+    <div class="step graph"><b>Web toggle ON</b><small>→ build_search_query → web_search → grade_web_results → generate_answer</small></div>
+    <div class="step graph"><b>Web toggle OFF</b><small>→ generate_answer</small></div>
+  </div>
+</div>
+<h3>5c. generate_answer</h3>
+<ul>
+  <li><b>No chunks and no web:</b> deterministic reply <i>"This is not covered in the document."</i> (no LLM call, never guesses).</li>
+  <li><b>Document only:</b> chunks ordered by page, answer prompt asks for "(Page N)" citations. Sources = cited pages ∩ retrieved pages; if none parsed, all retrieved pages.</li>
+  <li><b>With web results:</b> two-section answer (document first, then a labeled web section). Web sources = only the <code>[W#]</code> ids the answer cites.</li>
+  <li>Web status notice (limit reached / unavailable / no results) is appended in italics.</li>
+</ul>
+<p><b>Cost note:</b> one chat turn = 2-4 LLM calls (rewrite, grade, answer, plus rephrase or web steps). Gemini free tier is about 5 RPM, hence the OpenRouter fallback.</p>
+
+<!-- ======================================================= -->
+<h2 id="web">6. Web search</h2>
+<p>Source: <code>services/web_search.py</code>, <code>db/repositories/web_search.py</code>, <code>prompts/web.py</code></p>
+<div class="flow">
+  <div class="step graph"><b>build_search_query</b><small>LLM makes a short query from question + summary. If it shares no words with them, use the question.</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>Cache lookup</b><small>sha256(backend|region|query), 24 h TTL</small></div><div class="arrow">miss →</div>
+  <div class="step svc"><b>Daily limit</b><small>atomic <code>try_consume</code>, 20/user/UTC day</small></div><div class="arrow">→</div>
+  <div class="step ext"><b>DuckDuckGo (ddgs)</b><small>thread + timeout, 2 attempts on ratelimit/timeout, refund on failure</small></div><div class="arrow">→</div>
+  <div class="step svc"><b>Sanitize</b><small>strip control chars and <code>&lt; &gt;</code>, truncate 1200 chars, dedupe URLs</small></div><div class="arrow">→</div>
+  <div class="step graph"><b>grade_web_results</b><small>drop &lt;40 chars (heuristic), then LLM relevance</small></div>
+</div>
+<p>Statuses: <code>not_requested</code>, <code>used</code>, <code>no_results</code>, <code>limit_reached</code>, <code>unavailable</code>. The search service never raises; the graph degrades to a document-only answer with a notice.</p>
+<div class="note warn"><b>Untrusted content:</b> web text is placed only inside <code>&lt;untrusted_web_content&gt;</code> and the prompt tells the model to treat it as reference data, never instructions.</div>
+
+<!-- ======================================================= -->
+<h2 id="quiz">7. Quiz</h2>
+<p>Source: <code>api/quiz.py</code>, <code>services/quiz.py</code>, <code>graphs/quiz_graph.py</code>, <code>prompts/quiz.py</code></p>
+<h3>7a. Generate</h3>
+<div class="flow">
+  <div class="step fe"><b>Quiz page</b><small>topic (optional), difficulty, count, MCQ / short answer</small></div><div class="arrow">→</div>
+  <div class="step api"><b>POST /quizzes</b><small>count ≤ 10, doc owned and ready</small></div><div class="arrow">→</div>
+  <div class="step graph"><b>select_content</b><small>topic → similarity top-12; else sample 12 chunks evenly across the doc via fetch-by-id</small></div><div class="arrow">→</div>
+  <div class="step graph"><b>generate_questions</b><small>structured output, only the missing count (+2 spare)</small></div><div class="arrow">→</div>
+  <div class="step graph"><b>validate</b></div>
+</div>
+<h3>7b. Validation (two stages)</h3>
+<table>
+<tr><th>Stage</th><th>Checks</th></tr>
+<tr><td>Deterministic (<code>check_question</code>)</td><td>question length ≥ 8; source_page is one of the provided pages; explanation present; no duplicates; MCQ: exactly 4 distinct non-empty options, no "all/none of the above", correct answer matches exactly one option (bare letter A-D accepted); short answer: model answer present</td></tr>
+<tr><td>LLM batch (<code>_check_support</code>)</td><td>one call: is each answer supported by its source page excerpt? On LLM error, fail open (keep deterministic-valid ones)</td></tr>
+</table>
+<div class="branch"><div class="label">route_after_validation</div>
+  <p style="margin:0">Enough valid questions → done. Otherwise regenerate only the missing ones with rejection reasons fed back, up to <code>quiz_max_retries</code> = 2 extra rounds. No valid questions at all → <code>QuizGenerationError</code>.</p>
+</div>
+<p>After the graph, MCQ options are <b>shuffled</b> (LLMs tend to put the right answer first) and the quiz is saved.</p>
+<h3>7c. Take and submit</h3>
+<div class="flow">
+  <div class="step api"><b>GET /quizzes/{id}</b><small>questions without answers + past attempts</small></div><div class="arrow">→</div>
+  <div class="step api"><b>POST /quizzes/{id}/submit</b></div><div class="arrow">→</div>
+  <div class="step svc"><b>Score</b><small>MCQ: exact match. Short answer: one LLM call returns score + feedback (partial credit)</small></div><div class="arrow">→</div>
+  <div class="step db"><b>Save attempt</b><small>score, percentage, per-question feedback, explanation, source page</small></div>
+</div>
+
+<!-- ======================================================= -->
+<h2 id="llm">8. LLM &amp; retry layer</h2>
+<p>Source: <code>services/llm.py</code>, <code>services/retry.py</code>, <code>services/embeddings.py</code></p>
+<ul>
+  <li><code>LLMService</code> is the <b>only</b> module that knows Gemini / Groq / OpenRouter. Two methods: <code>generate_text</code> and <code>generate_structured(schema)</code>.</li>
+  <li>Calls try the primary, then the fallback. Final failure maps to a typed error: <code>LLMRateLimitError</code>, <code>LLMProviderError</code>, <code>LLMCapabilityError</code>. API keys are never put in messages.</li>
+  <li>Routes turn these into 503 <code>ServiceUnavailableError</code> with a friendly message.</li>
+  <li><code>with_retry</code> (tenacity): exponential backoff + jitter for 429, 5xx, timeouts. Used by embeddings, Pinecone and DuckDuckGo.</li>
+  <li>Gemini 3+ models get <code>thinking_level="low"</code> to keep latency down.</li>
+  <li>Embeddings are batched (50) with a 1 s pause between batches for free-tier limits.</li>
+</ul>
+
+<!-- ======================================================= -->
+<h2 id="data">9. Data stores</h2>
+<h3>MongoDB collections</h3>
+<table>
+<tr><th>Collection</th><th>Holds</th><th>Indexes</th></tr>
+<tr><td><code>documents</code></td><td>owner_id, filename, file_type, status (processing/ready/failed), page_count, chunk_count, summary, error</td><td>(owner_id, created_at↓), (status, created_at)</td></tr>
+<tr><td><code>chat_sessions</code></td><td>user_id, document_id, title, updated_at</td><td>(user_id, updated_at↓), (document_id)</td></tr>
+<tr><td><code>chat_messages</code></td><td>session_id, role, content, sources, web_search_enabled</td><td>(session_id, created_at)</td></tr>
+<tr><td><code>quizzes</code></td><td>questions with answers, topic, difficulty, type</td><td>(user_id, document_id)</td></tr>
+<tr><td><code>quiz_attempts</code></td><td>answers, score, per-question results</td><td>(quiz_id)</td></tr>
+<tr><td><code>web_search_usage</code></td><td>one counter per user per UTC day</td><td>unique (user_id, date)</td></tr>
+<tr><td><code>web_search_cache</code></td><td>query_hash → results</td><td>unique (query_hash), TTL 24 h on created_at</td></tr>
+<tr><td><code>users</code></td><td>reserved for the deferred Google login</td><td>unique (google_id)</td></tr>
+</table>
+<h3>Pinecone</h3>
+<p>One index (768-dim, cosine). <b>Namespace = document_id</b>. Vector id = <code>{document_id}#{chunk_index}</code> with metadata page_number + text. Starter plan caps 100 namespaces, so the app caps at 95 documents.</p>
+
+<!-- ======================================================= -->
+<h2 id="api">10. API reference</h2>
+<table>
+<tr><th>Method + path</th><th>Purpose</th><th>Status</th></tr>
+<tr><td><code>GET /health</code></td><td>liveness + Mongo ping</td><td>200 / 503</td></tr>
+<tr><td><code>POST /documents</code></td><td>upload, start background ingestion</td><td>202</td></tr>
+<tr><td><code>GET /documents</code></td><td>list own documents</td><td>200</td></tr>
+<tr><td><code>GET /documents/{id}</code></td><td>get one (status polling)</td><td>200 / 404</td></tr>
+<tr><td><code>DELETE /documents/{id}</code></td><td>delete doc + vectors + chats + quizzes</td><td>204 / 409</td></tr>
+<tr><td><code>POST /chat/sessions</code></td><td>new session for a ready document</td><td>201</td></tr>
+<tr><td><code>GET /chat/sessions?document_id=</code></td><td>list sessions</td><td>200</td></tr>
+<tr><td><code>GET /chat/sessions/{id}/messages</code></td><td>history</td><td>200</td></tr>
+<tr><td><code>POST /chat/sessions/{id}/messages</code></td><td>ask a question (<code>web_search</code> flag)</td><td>200 / 503</td></tr>
+<tr><td><code>DELETE /chat/sessions/{id}</code></td><td>delete session</td><td>204</td></tr>
+<tr><td><code>POST /quizzes</code></td><td>generate (20-60 s on free LLMs)</td><td>201 / 422</td></tr>
+<tr><td><code>GET /quizzes?document_id=</code></td><td>list quiz summaries</td><td>200</td></tr>
+<tr><td><code>GET /quizzes/{id}</code></td><td>questions without answers + attempts</td><td>200</td></tr>
+<tr><td><code>POST /quizzes/{id}/submit</code></td><td>score answers</td><td>200</td></tr>
+<tr><td><code>GET /usage/web-search</code></td><td>today's limit / used / remaining</td><td>200</td></tr>
+</table>
+<p>Interactive docs at <code>http://localhost:8000/docs</code> (hidden when <code>ENVIRONMENT=production</code>).</p>
+
+<!-- ======================================================= -->
+<h2 id="frontend">11. Frontend</h2>
+<p>Source: <code>frontend/app.py</code>, <code>ui.py</code>, <code>api_client.py</code>, <code>pages/*</code></p>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>app.py</code></td><td>entry; <code>st.navigation</code> over Home, Documents, Chat, Quiz; health probe on Home</td></tr>
+<tr><td><code>api_client.py</code></td><td>all HTTP calls to the backend; raises <code>APIError(status_code, message)</code></td></tr>
+<tr><td><code>ui.py</code></td><td>status badges, source rendering (pages vs web links), document picker remembered in session state</td></tr>
+<tr><td><code>pages/documents.py</code></td><td>upload form, list with auto-refresh while processing, summary, delete dialog</td></tr>
+<tr><td><code>pages/chat.py</code></td><td>session sidebar, history, web toggle + remaining searches, chat input</td></tr>
+<tr><td><code>pages/quiz.py</code></td><td>generate form, take quiz, results with explanations and source page</td></tr>
+</table>
+<p>Backend URL defaults to <code>http://localhost:8000</code>; override with <code>BACKEND_URL</code> or <code>.streamlit/secrets.toml</code>.</p>
+
+<!-- ======================================================= -->
+<h2 id="config">12. Configuration</h2>
+<p>Source: <code>backend/app/config.py</code>, <code>backend/.env.example</code>. Env vars override <code>.env</code>.</p>
+<table>
+<tr><th>Group</th><th>Key settings (defaults)</th></tr>
+<tr><td>Required</td><td><code>MONGODB_URI</code>, <code>GOOGLE_API_KEY</code>, <code>PINECONE_API_KEY</code>, <code>OPENROUTER_API_KEY</code> (unless fallback = none)</td></tr>
+<tr><td>Logging</td><td><code>LOG_LEVEL=INFO</code>, <code>LOG_FORMAT=pretty</code> (colored readable lines via structlog, short request id as <code>req=</code>) or <code>json</code> (one JSON object per line)</td></tr>
+<tr><td>LLM</td><td><code>LLM_PROVIDER=gemini</code>, <code>LLM_MODEL=gemini-3.6-flash</code>, <code>LLM_FALLBACK_PROVIDER=openrouter</code>, temperature 0.2, timeout 60 s</td></tr>
+<tr><td>Retrieval</td><td><code>RETRIEVAL_TOP_K=5</code>, <code>CHAT_HISTORY_MESSAGES=8</code></td></tr>
+<tr><td>Ingestion</td><td>max upload 25 MB, chunk 1000 / overlap 150, DOCX 3000 chars/page, scanned threshold 50 chars/page</td></tr>
+<tr><td>Quotas</td><td><code>MAX_DOCUMENTS_PER_USER=5</code>, <code>MAX_DOCUMENTS_TOTAL=95</code></td></tr>
+<tr><td>Quiz</td><td>max 10 questions, 2 regeneration rounds, 12 context chunks, 14000 chars</td></tr>
+<tr><td>Web search</td><td>20/day, 5 results, 15 s timeout, 1200 chars/result, cache on</td></tr>
+</table>
+<div class="note warn"><b>Gotcha:</b> a <code>GOOGLE_API_KEY</code> exported in your shell overrides <code>backend/.env</code>. <code>run_local.sh</code> unsets it; in other shells use <code>env -u GOOGLE_API_KEY …</code>.</div>
+
+<!-- ======================================================= -->
+<h2 id="security">13. Security rules</h2>
+<ul>
+  <li><b>Ownership everywhere.</b> Every repo/endpoint checks the user owns the document/session/quiz. <code>get_current_user</code> currently returns the fixed <code>local-dev-user</code>; enabling auth later only replaces that dependency.</li>
+  <li><b>Document id comes from the DB</b>, never the client, before any Pinecone query. The vector store itself knows nothing about users.</li>
+  <li><b>Upload validation</b> by extension and magic bytes; size capped while streaming; filename sanitized.</li>
+  <li><b>Web content untrusted:</b> sanitized, delimited, and flagged in the prompt.</li>
+  <li><b>Secrets</b> are <code>SecretStr</code>; log lines record error types and status only.</li>
+</ul>
+
+<!-- ======================================================= -->
+<h2 id="tests">14. Tests</h2>
+<p>Run: <code>cd backend &amp;&amp; .venv/bin/pytest</code> and <code>cd frontend &amp;&amp; .venv/bin/pytest</code>. No test calls a real external API; fakes are injected through the service container.</p>
+<table>
+<tr><th>Area</th><th>Files (backend/tests)</th></tr>
+<tr><td>Ingestion</td><td>test_ingestion_unit, test_ingestion_pipeline</td></tr>
+<tr><td>Graphs</td><td>test_qa_graph, test_qa_graph_web, test_quiz_graph</td></tr>
+<tr><td>API</td><td>test_documents_api, test_chat_api, test_quiz_api, test_health</td></tr>
+<tr><td>Infra</td><td>test_llm, test_retry, test_web_search, test_config, test_dependencies</td></tr>
+<tr><td>Frontend</td><td>frontend/tests: test_api_client, test_pages</td></tr>
+</table>
+
+<!-- ======================================================= -->
+<h2 id="run">15. Running locally</h2>
+<pre><code># one-time
+cd backend  &amp;&amp; python3.12 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements-dev.txt
+cd frontend &amp;&amp; python3.12 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements-dev.txt
+cp backend/.env.example backend/.env   # fill in keys
+
+# every time
+./run_local.sh     # backend :8000, frontend :8501, Ctrl+C stops both</code></pre>
+
+<!-- ======================================================= -->
+<h2 id="decisions">16. Decisions that differ from the original spec</h2>
+<table>
+<tr><th>Topic</th><th>Decision</th><th>Why</th></tr>
+<tr><td>Google login</td><td>Deferred; fixed local user</td><td>Focus on RAG first</td></tr>
+<tr><td>Web search</td><td>DuckDuckGo only, Tavily dropped</td><td>Tavily free tier needs a card</td></tr>
+<tr><td>LLM</td><td>Gemini primary, OpenRouter fallback, Groq optional</td><td>Free tier; fallback absorbs 5 RPM limit</td></tr>
+<tr><td>Doc quota</td><td>95 total, 5 per user</td><td>Pinecone Starter 100-namespace cap</td></tr>
+<tr><td>DOCX pages</td><td>~3000-char sections as "pages"</td><td>DOCX has no fixed pages</td></tr>
+<tr><td>Deployment</td><td>Parked (render.yaml exists)</td><td>Local use only for now</td></tr>
+</table>
+
+<!-- ======================================================= -->
+<h2 id="changelog">17. Changelog</h2>
+<p>Newest first. One line per flow change.</p>
+<ul class="changelog">
+  <li><b>2026-10-05</b> – Logging: new <code>LOG_FORMAT</code> setting; default <code>pretty</code> prints colored readable lines (structlog), <code>json</code> keeps one-object-per-line output.</li>
+  <li><b>2026-10-04</b> – Initial full-flow document: startup, ingestion, chat graph, web search, quiz graph, data stores, API, frontend.</li>
+</ul>
+
+</main>
+</div>
+</body>
+</html>
