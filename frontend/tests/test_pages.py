@@ -76,6 +76,7 @@ def run(path: str, **state: Any) -> AppTest:
 def all_text(at: AppTest) -> str:
     parts = [e.value for e in at.markdown] + [e.value for e in at.caption]
     parts += [e.value for e in at.error] + [e.value for e in at.info] + [e.value for e in at.success]
+    parts += [e.proto.body for e in at.get("html")]
     return "\n".join(str(p) for p in parts)
 
 
@@ -109,7 +110,7 @@ def test_chat_page_renders_history_and_labeled_sources(api: dict[str, list[Any]]
     text = all_text(at)
     assert "DI passes dependencies in (Page 3)." in text
     assert "Page 3" in text
-    assert "[FastAPI docs](https://fastapi.tiangolo.com)" in text  # clickable web link
+    assert 'href="https://fastapi.tiangolo.com"' in text  # clickable web link
     assert "not course material" in text  # web clearly distinguished
     assert "17 of 20 web searches left today" in text
     assert at.toggle(key="web_search_toggle").label == "Search the web"

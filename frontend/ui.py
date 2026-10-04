@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 from typing import Any
 
 import streamlit as st
@@ -13,6 +14,8 @@ STYLE = """
 <style>
 /* Comfortable reading width for every page. */
 [data-testid="stMainBlockContainer"] { max-width: 1180px; padding-top: 3rem; }
+/* Home is a landing page, not a reading page: give the hero and steps more room. */
+[data-testid="stMainBlockContainer"]:has(.hero) { max-width: 1440px; padding-left: 3rem; padding-right: 3rem; }
 
 /* Home hero: promise and actions on the left, a preview of a cited answer on the right.
    Sized to fit above the fold on a laptop screen. */
@@ -24,10 +27,10 @@ STYLE = """
 .brand-mark { width: 1.6rem; height: 1.6rem; border-radius: 0.35rem; flex: none;
   background: linear-gradient(225deg, #FFE45C 0 28%, #1E2A4A 28% 100%); }
 [data-testid="stMainBlockContainer"] h1.hero-title { font-family: Literata, serif; font-weight: 600;
-  font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.1; letter-spacing: -0.015em; margin: 0; padding: 0;
-  color: #1E2A4A; max-width: 19ch; }
+  font-size: clamp(2rem, 3.4vw, 3.2rem); line-height: 1.1; letter-spacing: -0.015em; margin: 0; padding: 0;
+  color: #1E2A4A; max-width: 20ch; }
 [data-testid="stMainBlockContainer"] p.hero-lede { font-size: 1.1rem; line-height: 1.6; color: #46526F;
-  max-width: 48ch; margin: 1.1rem 0 1.6rem; }
+  max-width: 54ch; margin: 1.1rem 0 1.6rem; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .hero-actions a { display: inline-block; font-weight: 700; text-decoration: none !important;
   padding: 0.75rem 1.3rem; border-radius: 0.65rem; transition: background 0.15s ease, border-color 0.15s ease; }
@@ -102,6 +105,21 @@ STYLE = """
 [data-testid="stChatMessageAvatarUser"] { background: #1E2A4A; color: #FFFFFF; }
 [data-testid="stChatMessageAvatarAssistant"] { background: #FFE45C; color: #1E2A4A; }
 
+/* Sources under an answer: page chips in highlighter yellow (same as the home preview),
+   web links as outlined chips so they never pass for course material. */
+.sources { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.4rem; padding-top: 0.75rem;
+  border-top: 1px solid #E6E9F2; }
+.src-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.src-label { font-size: 0.82rem; font-weight: 600; color: #46526F; margin-right: 0.2rem; }
+.src-chip { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 700;
+  padding: 0.2rem 0.65rem; border-radius: 999px; line-height: 1.4; }
+.src-page { background: #FFE45C; color: #1E2A4A; }
+.src-page::before { content: ""; width: 0.55rem; height: 0.7rem; border-radius: 0.1rem; flex: none;
+  background: linear-gradient(225deg, #FFE45C 0 30%, #1E2A4A 30% 100%); }
+.src-web { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;
+  background: #FFFFFF; color: #2F4BD8 !important; border: 1.5px solid #C5CDE3; text-decoration: none !important; }
+.src-web:hover { border-color: #2F4BD8; background: #F0F3FF; }
+
 /* Keyboard focus stays visible on links and buttons. */
 a:focus-visible, button:focus-visible { outline: 2px solid #2F4BD8; outline-offset: 2px; }
 </style>
@@ -129,15 +147,24 @@ def show_error(exc: api_client.APIError) -> None:
 
 
 def render_sources(sources: list[dict[str, Any]]) -> None:
-    """Document pages and web links, clearly separated."""
+    """Document pages and web links as chips, in separate rows."""
     pages = sorted({s["page"] for s in sources if s.get("type") == "document"})
     web = [s for s in sources if s.get("type") == "web"]
+    rows = []
     if pages:
-        st.caption("📄 **From your document:** " + " · ".join(f"Page {p}" for p in pages))
+        chips = "".join(f'<span class="src-chip src-page">Page {int(p)}</span>' for p in pages)
+        rows.append(f'<div class="src-row"><span class="src-label">From your document</span>{chips}</div>')
     if web:
-        links = "\n".join(f"- 🌐 [{w['title']}]({w['url']})" for w in web)
-        st.caption("**Web sources (external, not course material):**")
-        st.markdown(links)
+        # Web titles and URLs are untrusted: escape them and only link http(s).
+        chips = "".join(
+            f'<a class="src-chip src-web" href="{html.escape(w["url"])}" target="_blank" rel="noopener noreferrer"'
+            f' title="{html.escape(w["url"])}">{html.escape(w.get("title") or w["url"])}</a>'
+            for w in web
+            if str(w.get("url", "")).startswith(("http://", "https://"))
+        )
+        rows.append(f'<div class="src-row"><span class="src-label">From the web, not course material</span>{chips}</div>')
+    if rows:
+        st.html(f'<div class="sources">{"".join(rows)}</div>')
 
 
 def ready_documents() -> list[dict[str, Any]]:
