@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+import api_client
 import httpx
 import pytest
-
-import api_client
 
 
 def response(status: int, json: Any = None, text: str = "") -> httpx.Response:

@@ -64,9 +64,7 @@ class GeminiEmbeddingService:
         return vectors
 
     async def embed_query(self, text: str) -> list[float]:
-        vector = await with_retry(
-            lambda: self._model.aembed_query(text, task_type=_QUERY_TASK)
-        )
+        vector = await with_retry(lambda: self._model.aembed_query(text, task_type=_QUERY_TASK))
         self._check_dimensions([vector])
         return vector
 

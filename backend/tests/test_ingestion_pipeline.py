@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from bson import ObjectId
-
 from app.config import Settings
 from app.db.repositories.documents import DocumentRepository
 from app.schemas.document import FileType
 from app.services.ingestion import IngestionService
+from bson import ObjectId
+
 from tests.conftest import FakeEmbedder, FakeLLM, FakeMongo, FakeVectorStore, make_pdf
 
 PDF = make_pdf(["Some real course content about recursion. " * 30] * 2)

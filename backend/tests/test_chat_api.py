@@ -7,11 +7,11 @@ from typing import Any
 
 import httpx
 import pytest
-
 from app.prompts.qa import ANSWER_SYSTEM_PROMPT, REWRITE_SYSTEM_PROMPT
-from app.services.container import Services
 from app.services.chat import make_title
+from app.services.container import Services
 from app.services.llm import LLMRateLimitError
+
 from tests.conftest import FakeMongo, make_pdf
 
 PDF = make_pdf(["Dependency injection passes dependencies in. " * 20] * 2)
@@ -56,7 +56,13 @@ async def ask(client: httpx.AsyncClient, session_id: str, content: str) -> httpx
 async def insert_other_users_session(mongo: FakeMongo, doc_id: str) -> str:
     now = datetime.now(UTC)
     result = await mongo.db["chat_sessions"].insert_one(
-        {"user_id": "someone-else", "document_id": doc_id, "title": "x", "created_at": now, "updated_at": now}
+        {
+            "user_id": "someone-else",
+            "document_id": doc_id,
+            "title": "x",
+            "created_at": now,
+            "updated_at": now,
+        }
     )
     return str(result.inserted_id)
 
@@ -73,8 +79,13 @@ async def test_cannot_create_session_for_processing_document(
     client: httpx.AsyncClient, fake_mongo: FakeMongo
 ) -> None:
     result = await fake_mongo.db["documents"].insert_one(
-        {"owner_id": "local-dev-user", "filename": "x.pdf", "file_type": "pdf",
-         "status": "processing", "created_at": datetime.now(UTC)}
+        {
+            "owner_id": "local-dev-user",
+            "filename": "x.pdf",
+            "file_type": "pdf",
+            "status": "processing",
+            "created_at": datetime.now(UTC),
+        }
     )
     response = await client.post("/chat/sessions", json={"document_id": str(result.inserted_id)})
     assert response.status_code == 409
@@ -84,8 +95,13 @@ async def test_cannot_create_session_for_other_users_document(
     client: httpx.AsyncClient, fake_mongo: FakeMongo
 ) -> None:
     result = await fake_mongo.db["documents"].insert_one(
-        {"owner_id": "someone-else", "filename": "x.pdf", "file_type": "pdf",
-         "status": "ready", "created_at": datetime.now(UTC)}
+        {
+            "owner_id": "someone-else",
+            "filename": "x.pdf",
+            "file_type": "pdf",
+            "status": "ready",
+            "created_at": datetime.now(UTC),
+        }
     )
     response = await client.post("/chat/sessions", json={"document_id": str(result.inserted_id)})
     assert response.status_code == 404
@@ -97,9 +113,13 @@ async def test_list_sessions_filters_by_document_and_owner(
     mine = await new_session(client, ready_doc)
     await insert_other_users_session(fake_mongo, ready_doc)
 
-    sessions = (await client.get("/chat/sessions", params={"document_id": ready_doc})).json()["sessions"]
+    sessions = (await client.get("/chat/sessions", params={"document_id": ready_doc})).json()[
+        "sessions"
+    ]
     assert [s["id"] for s in sessions] == [mine]
-    assert (await client.get("/chat/sessions", params={"document_id": "other"})).json()["sessions"] == []
+    assert (await client.get("/chat/sessions", params={"document_id": "other"})).json()[
+        "sessions"
+    ] == []
 
 
 # ------------------------------------------------------------------ messages
@@ -242,14 +262,19 @@ async def test_web_search_message_stores_typed_web_sources(
 ) -> None:
     session_id = await new_session(client, ready_doc)
     response = await client.post(
-        f"/chat/sessions/{session_id}/messages", json={"content": "How does FastAPI do DI?", "web_search": True}
+        f"/chat/sessions/{session_id}/messages",
+        json={"content": "How does FastAPI do DI?", "web_search": True},
     )
     assert response.status_code == 200, response.text
     assistant = response.json()["assistant_message"]
     assert assistant["web_search_enabled"] is True
     assert assistant["sources"] == [
         {"type": "document", "page": 1},
-        {"type": "web", "title": "DI on Wikipedia", "url": "https://en.wikipedia.org/wiki/Dependency_injection"},
+        {
+            "type": "web",
+            "title": "DI on Wikipedia",
+            "url": "https://en.wikipedia.org/wiki/Dependency_injection",
+        },
     ]
     stored = (await client.get(f"/chat/sessions/{session_id}/messages")).json()["messages"]
     assert stored[1]["sources"] == assistant["sources"]

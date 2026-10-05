@@ -114,13 +114,18 @@ class ChatMessageRepository:
         return doc
 
     async def list(self, session_id: str) -> list[MongoDoc]:
-        return await self._col.find({"session_id": session_id}).sort(
-            [("created_at", ASCENDING), ("_id", ASCENDING)]
-        ).to_list(length=None)
+        return (
+            await self._col.find({"session_id": session_id})
+            .sort([("created_at", ASCENDING), ("_id", ASCENDING)])
+            .to_list(length=None)
+        )
 
     async def recent(self, session_id: str, limit: int) -> list[MongoDoc]:
         """The last `limit` messages, oldest first."""
-        docs = await self._col.find({"session_id": session_id}).sort(
-            [("created_at", DESCENDING), ("_id", DESCENDING)]
-        ).limit(limit).to_list(length=None)
+        docs = (
+            await self._col.find({"session_id": session_id})
+            .sort([("created_at", DESCENDING), ("_id", DESCENDING)])
+            .limit(limit)
+            .to_list(length=None)
+        )
         return list(reversed(docs))

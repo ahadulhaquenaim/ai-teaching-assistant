@@ -5,9 +5,8 @@ from __future__ import annotations
 import html
 from typing import Any
 
-import streamlit as st
-
 import api_client
+import streamlit as st
 
 # Small layer on top of .streamlit/config.toml: things the theme can't express.
 STYLE = """
@@ -226,7 +225,9 @@ def render_sources(sources: list[dict[str, Any]]) -> None:
     rows = []
     if pages:
         chips = "".join(f'<span class="src-chip src-page">Page {int(p)}</span>' for p in pages)
-        rows.append(f'<div class="src-row"><span class="src-label">From your document</span>{chips}</div>')
+        rows.append(
+            f'<div class="src-row"><span class="src-label">From your document</span>{chips}</div>'
+        )
     if web:
         # Web titles and URLs are untrusted: escape them and only link http(s).
         chips = "".join(
@@ -235,7 +236,9 @@ def render_sources(sources: list[dict[str, Any]]) -> None:
             for w in web
             if str(w.get("url", "")).startswith(("http://", "https://"))
         )
-        rows.append(f'<div class="src-row"><span class="src-label">From the web, not course material</span>{chips}</div>')
+        rows.append(
+            f'<div class="src-row"><span class="src-label">From the web, not course material</span>{chips}</div>'
+        )
     if rows:
         st.html(f'<div class="sources">{"".join(rows)}</div>')
 
@@ -252,7 +255,9 @@ def ready_documents() -> list[dict[str, Any]]:
 def document_picker(docs: list[dict[str, Any]], key: str) -> dict[str, Any] | None:
     """Selectbox of documents; remembers the choice across pages."""
     if not docs:
-        st.info("No ready documents yet. Upload one on the **Documents** page.", icon=":material/info:")
+        st.info(
+            "No ready documents yet. Upload one on the **Documents** page.", icon=":material/info:"
+        )
         return None
     ids = [d["id"] for d in docs]
     remembered = st.session_state.get("selected_document_id")

@@ -76,7 +76,9 @@ def extract_pdf_pages(data: bytes) -> list[PageText]:
     try:
         with pymupdf.open(stream=data, filetype="pdf") as pdf:
             if pdf.needs_pass:
-                raise CorruptFileError("This PDF is password-protected. Please upload an unlocked file.")
+                raise CorruptFileError(
+                    "This PDF is password-protected. Please upload an unlocked file."
+                )
             return [
                 PageText(page_number=i + 1, text=clean_text(page.get_text("text")))
                 for i, page in enumerate(pdf)
@@ -250,5 +252,7 @@ class IngestionService:
         try:
             await self._vectors.delete_document(document_id)
         except Exception:
-            logger.exception("cleanup of partial vectors failed", extra={"document_id": document_id})
+            logger.exception(
+                "cleanup of partial vectors failed", extra={"document_id": document_id}
+            )
         await self._repo.mark_failed(document_id, message)

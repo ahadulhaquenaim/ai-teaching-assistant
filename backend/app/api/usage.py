@@ -20,4 +20,6 @@ async def web_search_usage(
 ) -> WebSearchUsageOut:
     """Today's web searches (UTC day): limit, used, and remaining."""
     used, remaining = await service.remaining(user.user_id)
-    return WebSearchUsageOut(date=today_utc(), limit=service.daily_limit, used=used, remaining=remaining)
+    return WebSearchUsageOut(
+        date=today_utc(), limit=service.daily_limit, used=used, remaining=remaining
+    )

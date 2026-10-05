@@ -124,7 +124,9 @@ def check_question(
         matches = [o for o in options if normalize(o) == normalize(answer)]
         if len(matches) != 1:
             return None, "correct_answer must match exactly one option"
-        cleaned = q.model_copy(update={"question": question, "options": options, "correct_answer": matches[0]})
+        cleaned = q.model_copy(
+            update={"question": question, "options": options, "correct_answer": matches[0]}
+        )
     else:
         if not q.correct_answer.strip():
             return None, "model answer is missing"
@@ -166,7 +168,9 @@ class QuizGraph:
         graph.add_edge("select_content", "generate_questions")
         graph.add_edge("generate_questions", "validate")
         graph.add_conditional_edges(
-            "validate", self.route_after_validation, {"regenerate": "generate_questions", "done": END}
+            "validate",
+            self.route_after_validation,
+            {"regenerate": "generate_questions", "done": END},
         )
         return graph.compile()
 
@@ -233,7 +237,9 @@ class QuizGraph:
             topic_line=f"Focus on this topic: {state['topic']}\n" if state.get("topic") else "",
             avoid_block=f"\nExisting questions (do not repeat):\n{avoid}\n" if avoid else "",
             feedback_block=(
-                "\nPrevious attempt problems to avoid:\n" + "\n".join(f"- {r}" for r in reasons[-8:]) + "\n"
+                "\nPrevious attempt problems to avoid:\n"
+                + "\n".join(f"- {r}" for r in reasons[-8:])
+                + "\n"
                 if reasons
                 else ""
             ),
@@ -244,7 +250,8 @@ class QuizGraph:
         )
         rounds = state.get("rounds", 0) + 1
         logger.info(
-            "quiz questions generated", extra={"needed": needed, "got": len(result.questions), "round": rounds}
+            "quiz questions generated",
+            extra={"needed": needed, "got": len(result.questions), "round": rounds},
         )
         return {"candidates": result.questions[: needed + 2], "rounds": rounds}
 
@@ -272,7 +279,11 @@ class QuizGraph:
 
         logger.info(
             "quiz questions validated",
-            extra={"valid_total": len(valid), "rejected": len(reasons), "round": state.get("rounds", 0)},
+            extra={
+                "valid_total": len(valid),
+                "rejected": len(reasons),
+                "round": state.get("rounds", 0),
+            },
         )
         return {"valid_questions": valid, "rejection_reasons": reasons, "candidates": []}
 
@@ -283,7 +294,9 @@ class QuizGraph:
             return "done"
         return "regenerate"
 
-    async def _check_support(self, questions: list[GeneratedQuestion], chunks: list[RetrievedChunk]) -> set[int]:
+    async def _check_support(
+        self, questions: list[GeneratedQuestion], chunks: list[RetrievedChunk]
+    ) -> set[int]:
         """Ids (1-based) of questions whose answer the LLM finds in the source excerpt."""
         if not questions:
             return set()
@@ -294,7 +307,10 @@ class QuizGraph:
         )
         try:
             result = await self._llm.generate_structured(
-                [SystemMessage(SUPPORT_SYSTEM_PROMPT), HumanMessage(SUPPORT_USER_TEMPLATE.format(questions=items))],
+                [
+                    SystemMessage(SUPPORT_SYSTEM_PROMPT),
+                    HumanMessage(SUPPORT_USER_TEMPLATE.format(questions=items)),
+                ],
                 SupportCheck,
             )
         except LLMError:

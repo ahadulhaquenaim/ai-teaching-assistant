@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-import streamlit as st
-
 import api_client
+import streamlit as st
 from ui import document_picker, ready_documents, show_error
 
 QUIZ_KEY = "active_quiz"
@@ -50,8 +49,10 @@ def render_result(result: dict[str, Any]) -> None:
 # --------------------------------------------------------------- take quiz
 def take_quiz(quiz: dict[str, Any]) -> None:
     title = quiz.get("topic") or "Whole document"
-    st.subheader(f"{title} · {quiz['difficulty'].title()} · "
-                 f"{'Multiple choice' if quiz['question_type'] == 'mcq' else 'Short answer'}")
+    st.subheader(
+        f"{title} · {quiz['difficulty'].title()} · "
+        f"{'Multiple choice' if quiz['question_type'] == 'mcq' else 'Short answer'}"
+    )
     if st.button("Back to quiz list", icon=":material/arrow_back:"):
         set_active(None)
         st.rerun()
@@ -93,25 +94,37 @@ if active and active.get("document_id") == doc["id"]:
 new_tab, past_tab = st.tabs([":material/add: New quiz", ":material/history: Past quizzes"])
 
 with new_tab, st.form("new-quiz"):
-    topic = st.text_input("Topic (optional)", placeholder="Leave empty to cover the whole document",
-                          max_chars=200)
+    topic = st.text_input(
+        "Topic (optional)", placeholder="Leave empty to cover the whole document", max_chars=200
+    )
     cols = st.columns(3)
-    difficulty = cols[0].selectbox("Difficulty", ["easy", "medium", "hard"], index=1,
-                                   format_func=str.title)
+    difficulty = cols[0].selectbox(
+        "Difficulty", ["easy", "medium", "hard"], index=1, format_func=str.title
+    )
     count = cols[1].slider("Number of questions", 1, 10, 5)
-    qtype = cols[2].radio("Question type", ["mcq", "short_answer"], horizontal=True,
-                          format_func=lambda t: "Multiple choice" if t == "mcq" else "Short answer")
-    generate = st.form_submit_button("Generate quiz", type="primary", icon=":material/auto_awesome:")
+    qtype = cols[2].radio(
+        "Question type",
+        ["mcq", "short_answer"],
+        horizontal=True,
+        format_func=lambda t: "Multiple choice" if t == "mcq" else "Short answer",
+    )
+    generate = st.form_submit_button(
+        "Generate quiz", type="primary", icon=":material/auto_awesome:"
+    )
 if generate:
-    with st.spinner("Generating and validating questions... (free-tier AI can take up to a minute)"):
+    with st.spinner(
+        "Generating and validating questions... (free-tier AI can take up to a minute)"
+    ):
         try:
-            quiz = api_client.create_quiz({
-                "document_id": doc["id"],
-                "topic": topic.strip() or None,
-                "difficulty": difficulty,
-                "number_of_questions": count,
-                "question_type": qtype,
-            })
+            quiz = api_client.create_quiz(
+                {
+                    "document_id": doc["id"],
+                    "topic": topic.strip() or None,
+                    "difficulty": difficulty,
+                    "number_of_questions": count,
+                    "question_type": qtype,
+                }
+            )
             if quiz["question_count"] < count:
                 st.toast(f"Generated {quiz['question_count']} valid questions (requested {count}).")
             set_active(quiz)
@@ -130,9 +143,11 @@ with past_tab:
     for q in quizzes:
         with st.container(border=True):
             cols = st.columns([5, 1], vertical_alignment="center")
-            cols[0].markdown(f"**{q.get('topic') or 'Whole document'}** · {q['difficulty'].title()} · "
-                             f"{q['question_count']} {'MCQ' if q['question_type'] == 'mcq' else 'short answer'} "
-                             f"questions")
+            cols[0].markdown(
+                f"**{q.get('topic') or 'Whole document'}** · {q['difficulty'].title()} · "
+                f"{q['question_count']} {'MCQ' if q['question_type'] == 'mcq' else 'short answer'} "
+                f"questions"
+            )
             cols[0].caption(q["created_at"][:16].replace("T", " "))
             if cols[1].button("Open", key=f"open-quiz-{q['id']}"):
                 try:

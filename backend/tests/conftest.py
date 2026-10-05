@@ -148,12 +148,16 @@ class FakeVectorStore:
         for chunk, vector in zip(chunks, vectors, strict=True):
             ns[f"{document_id}#{chunk.chunk_index}"] = (chunk, vector)
 
-    async def query(self, document_id: str, vector: list[float], top_k: int) -> list[RetrievedChunk]:
+    async def query(
+        self, document_id: str, vector: list[float], top_k: int
+    ) -> list[RetrievedChunk]:
         self.queried.append(document_id)
         records = list(self.namespaces.get(document_id, {}).values())[:top_k]
         return [RetrievedChunk(c.chunk_index, c.page_number, c.text, 0.9) for c, _ in records]
 
-    async def fetch_chunks(self, document_id: str, chunk_indices: Sequence[int]) -> list[RetrievedChunk]:
+    async def fetch_chunks(
+        self, document_id: str, chunk_indices: Sequence[int]
+    ) -> list[RetrievedChunk]:
         ns = self.namespaces.get(document_id, {})
         out = [ns[f"{document_id}#{i}"][0] for i in chunk_indices if f"{document_id}#{i}" in ns]
         return [RetrievedChunk(c.chunk_index, c.page_number, c.text, 1.0) for c in out]
@@ -213,10 +217,16 @@ class FakeSearchProvider:
 
     def __init__(self) -> None:
         self.results: list[WebResult] = [
-            WebResult("FastAPI dependencies", "https://fastapi.tiangolo.com/tutorial/dependencies/",
-                      "FastAPI has a powerful dependency injection system built around Depends."),
-            WebResult("DI on Wikipedia", "https://en.wikipedia.org/wiki/Dependency_injection",
-                      "Dependency injection is a programming technique in which an object receives other objects."),
+            WebResult(
+                "FastAPI dependencies",
+                "https://fastapi.tiangolo.com/tutorial/dependencies/",
+                "FastAPI has a powerful dependency injection system built around Depends.",
+            ),
+            WebResult(
+                "DI on Wikipedia",
+                "https://en.wikipedia.org/wiki/Dependency_injection",
+                "Dependency injection is a programming technique in which an object receives other objects.",
+            ),
         ]
         self.fail = False
         self.queries: list[str] = []

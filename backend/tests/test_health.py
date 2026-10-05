@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import httpx
-
 from app.db.indexes import INDEXES
+
 from tests.conftest import FakeMongo
 
 

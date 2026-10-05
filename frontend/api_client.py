@@ -31,7 +31,9 @@ TOKEN_KEY = "auth_token"
 class APIError(Exception):
     """A request failed; `message` is safe to show to the user."""
 
-    def __init__(self, message: str, status_code: int | None = None, code: str | None = None) -> None:
+    def __init__(
+        self, message: str, status_code: int | None = None, code: str | None = None
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.status_code = status_code
@@ -94,7 +96,13 @@ def request(
         while True:
             try:
                 response = httpx.request(
-                    method, url, json=json, params=params, files=files, headers=_headers(), timeout=timeout
+                    method,
+                    url,
+                    json=json,
+                    params=params,
+                    files=files,
+                    headers=_headers(),
+                    timeout=timeout,
                 )
             except (httpx.ConnectError, httpx.ConnectTimeout, httpx.RemoteProtocolError) as exc:
                 response = None
@@ -111,11 +119,15 @@ def request(
                 break
             if time.monotonic() + delay > deadline:
                 if failure is not None:
-                    raise APIError("Cannot reach the server. Please try again in a minute.") from failure
+                    raise APIError(
+                        "Cannot reach the server. Please try again in a minute."
+                    ) from failure
                 break
             if waking is None:
                 waking = st.empty()
-                waking.info("⏳ Waking up the server... (free hosting sleeps when idle, this can take up to a minute)")
+                waking.info(
+                    "⏳ Waking up the server... (free hosting sleeps when idle, this can take up to a minute)"
+                )
             time.sleep(delay)
             delay = min(delay * 1.5, 10.0)
     finally:
@@ -147,7 +159,9 @@ def get_document(document_id: str) -> dict[str, Any]:
 
 
 def upload_document(filename: str, data: bytes, content_type: str) -> dict[str, Any]:
-    return request("POST", "/documents", files={"file": (filename, data, content_type)}, timeout=180)
+    return request(
+        "POST", "/documents", files={"file": (filename, data, content_type)}, timeout=180
+    )
 
 
 def delete_document(document_id: str) -> None:

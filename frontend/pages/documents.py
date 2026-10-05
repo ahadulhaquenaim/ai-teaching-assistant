@@ -9,9 +9,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-import streamlit as st
-
 import api_client
+import streamlit as st
 from ui import show_error, status_badge
 
 POLL_SECONDS = 3
@@ -33,7 +32,9 @@ if submitted:
         ext = uploaded.name.rsplit(".", 1)[-1].lower()
         with st.spinner(f"Uploading {uploaded.name}..."):
             try:
-                api_client.upload_document(uploaded.name, uploaded.getvalue(), MIME.get(ext, "application/octet-stream"))
+                api_client.upload_document(
+                    uploaded.name, uploaded.getvalue(), MIME.get(ext, "application/octet-stream")
+                )
                 st.toast(f"{uploaded.name} uploaded. Processing started.", icon=":material/check:")
             except api_client.APIError as exc:
                 show_error(exc)
@@ -73,8 +74,13 @@ def render_document(doc: dict[str, Any]) -> None:
             status_badge(doc["status"])
         with top[2]:
             disabled = doc["status"] == "processing"
-            if st.button("", icon=":material/delete:", key=f"del-{doc['id']}", disabled=disabled,
-                         help="Wait for processing to finish" if disabled else "Delete"):
+            if st.button(
+                "",
+                icon=":material/delete:",
+                key=f"del-{doc['id']}",
+                disabled=disabled,
+                help="Wait for processing to finish" if disabled else "Delete",
+            ):
                 confirm_delete(doc)
         if doc["status"] == "ready" and doc.get("summary"):
             st.write(doc["summary"])

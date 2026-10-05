@@ -9,7 +9,12 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.config import Settings
-from app.core.errors import ConflictError, NotFoundError, ServiceUnavailableError, UnprocessableError
+from app.core.errors import (
+    ConflictError,
+    NotFoundError,
+    ServiceUnavailableError,
+    UnprocessableError,
+)
 from app.db.repositories.documents import DocumentRepository, MongoDoc
 from app.db.repositories.quiz import QuizAttemptRepository, QuizRepository
 from app.graphs.quiz_graph import QuizGenerationError, QuizGraph, normalize
@@ -100,7 +105,9 @@ class QuizService:
             logger.exception("quiz generation failed")
             raise ServiceUnavailableError("Quiz generation is temporarily unavailable.") from exc
 
-        stored = [{"id": i, **shuffle_options(q, self._rng).model_dump()} for i, q in enumerate(questions)]
+        stored = [
+            {"id": i, **shuffle_options(q, self._rng).model_dump()} for i, q in enumerate(questions)
+        ]
         quiz = await self._quizzes.create(
             user_id=user_id,
             document_id=req.document_id,
@@ -112,7 +119,11 @@ class QuizService:
         )
         logger.info(
             "quiz created",
-            extra={"quiz_id": str(quiz["_id"]), "requested": req.number_of_questions, "generated": len(stored)},
+            extra={
+                "quiz_id": str(quiz["_id"]),
+                "requested": req.number_of_questions,
+                "generated": len(stored),
+            },
         )
         return quiz
 
@@ -161,7 +172,9 @@ class QuizService:
         return await self._attempts.create(
             quiz_id=quiz_id,
             user_id=user_id,
-            answers=[{"question_id": qid, "answer": given.get(qid, "")} for qid in sorted(questions)],
+            answers=[
+                {"question_id": qid, "answer": given.get(qid, "")} for qid in sorted(questions)
+            ],
             score=score,
             total=total,
             percentage=round(100 * score / total, 1) if total else 0.0,
@@ -189,19 +202,30 @@ class QuizService:
         )
         try:
             result = await self._llm.generate_structured(
-                [SystemMessage(GRADE_SHORT_SYSTEM_PROMPT), HumanMessage(GRADE_SHORT_USER_TEMPLATE.format(items=items))],
+                [
+                    SystemMessage(GRADE_SHORT_SYSTEM_PROMPT),
+                    HumanMessage(GRADE_SHORT_USER_TEMPLATE.format(items=items)),
+                ],
                 ShortAnswerGrades,
             )
         except LLMRateLimitError as exc:
             raise ServiceUnavailableError(str(exc)) from exc
         except LLMError as exc:
-            raise ServiceUnavailableError("Answers could not be graded right now. Please try again.") from exc
+            raise ServiceUnavailableError(
+                "Answers could not be graded right now. Please try again."
+            ) from exc
 
         by_id = {g.question_id: g for g in result.grades}
         for qid in to_grade:
             grade = by_id.get(qid)
             if grade is None:
-                raise ServiceUnavailableError("Answers could not be graded right now. Please try again.")
+                raise ServiceUnavailableError(
+                    "Answers could not be graded right now. Please try again."
+                )
             score = round(min(1.0, max(0.0, grade.score)), 2)
-            graded[qid] = {"score": score, "is_correct": score >= 0.7, "feedback": grade.feedback.strip()}
+            graded[qid] = {
+                "score": score,
+                "is_correct": score >= 0.7,
+                "feedback": grade.feedback.strip(),
+            }
         return graded

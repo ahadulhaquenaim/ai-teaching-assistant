@@ -44,9 +44,7 @@ INDEXES: list[IndexSpec] = [
     # quiz_attempts: attempts of one quiz (results + cascade delete).
     IndexSpec("quiz_attempts", [("quiz_id", ASCENDING)]),
     # web_search_usage: one counter per user per day.
-    IndexSpec(
-        "web_search_usage", [("user_id", ASCENDING), ("date", ASCENDING)], {"unique": True}
-    ),
+    IndexSpec("web_search_usage", [("user_id", ASCENDING), ("date", ASCENDING)], {"unique": True}),
     # web_search_cache: lookup by query hash, auto-expire after 24h.
     IndexSpec("web_search_cache", [("query_hash", ASCENDING)], {"unique": True}),
     IndexSpec(

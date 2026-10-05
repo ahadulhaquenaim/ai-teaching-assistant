@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from app.services.retry import is_rate_limit_error, is_transient_error, with_retry
 
 
