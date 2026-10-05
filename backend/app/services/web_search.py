@@ -104,7 +104,9 @@ class DuckDuckGoProvider:
                 asyncio.to_thread(self._search_sync, query, max_results), self._timeout + 5
             )
 
-        raw = await with_retry(once, attempts=2, initial_delay=1.0, max_delay=3.0, retry_if=_ddgs_retryable)
+        raw = await with_retry(
+            once, attempts=2, initial_delay=1.0, max_delay=3.0, retry_if=_ddgs_retryable
+        )
         results: list[WebResult] = []
         seen: set[str] = set()
         for item in raw:

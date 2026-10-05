@@ -236,7 +236,11 @@ class QAGraph:
         graph.add_conditional_edges(
             "grade_documents",
             self.route_after_grading,
-            {"rephrase": "rephrase_query", "web": "build_search_query", "answer": "generate_answer"},
+            {
+                "rephrase": "rephrase_query",
+                "web": "build_search_query",
+                "answer": "generate_answer",
+            },
         )
         graph.add_edge("rephrase_query", "retrieve_document")
         graph.add_edge("build_search_query", "web_search")
@@ -304,7 +308,9 @@ class QAGraph:
         """Top-k similarity search in the document's own namespace."""
         vector = await self._embedder.embed_query(state["rewritten_question"])
         results = await self._vectors.query(state["document_id"], vector, self._top_k)
-        logger.info("retrieved chunks", extra={"count": len(results), "retries": state.get("retries", 0)})
+        logger.info(
+            "retrieved chunks", extra={"count": len(results), "retries": state.get("retries", 0)}
+        )
         return {"doc_results": results}
 
     async def grade_documents(self, state: QAState) -> QAState:
@@ -355,7 +361,10 @@ class QAGraph:
             )
         except LLMError:
             rephrased = ""
-        return {"rewritten_question": rephrased.strip() or state["rewritten_question"], "retries": retries}
+        return {
+            "rewritten_question": rephrased.strip() or state["rewritten_question"],
+            "retries": retries,
+        }
 
     # ----------------------------------------------------------- web nodes
     async def build_search_query(self, state: QAState) -> QAState:
@@ -393,7 +402,9 @@ class QAGraph:
         """Drop low-quality results (heuristics), then irrelevant ones (LLM)."""
         if state.get("web_search_status") != WebSearchStatus.USED:
             return {"web_results": []}
-        results = [r for r in state.get("web_results") or [] if len(r.content) >= _MIN_WEB_CONTENT_CHARS]
+        results = [
+            r for r in state.get("web_results") or [] if len(r.content) >= _MIN_WEB_CONTENT_CHARS
+        ]
         if not results:
             return {"web_results": [], "web_search_status": WebSearchStatus.NO_RESULTS}
         try:
@@ -402,7 +413,8 @@ class QAGraph:
                     SystemMessage(WEB_GRADE_SYSTEM_PROMPT),
                     HumanMessage(
                         WEB_GRADE_USER_TEMPLATE.format(
-                            question=state["rewritten_question"], results=format_web_results(results)
+                            question=state["rewritten_question"],
+                            results=format_web_results(results),
                         )
                     ),
                 ],

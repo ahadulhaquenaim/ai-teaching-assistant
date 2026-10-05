@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from app.schemas.document import FileType
 from app.services.ingestion import (
     CorruptFileError,
@@ -17,6 +16,7 @@ from app.services.ingestion import (
     extract_docx_pages,
     extract_pdf_pages,
 )
+
 from tests.conftest import make_docx, make_pdf
 
 

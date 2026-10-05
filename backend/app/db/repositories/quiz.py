@@ -43,7 +43,12 @@ def to_quiz_out(doc: MongoDoc, attempts: list[MongoDoc]) -> QuizOut:
     return QuizOut(
         **to_quiz_summary(doc).model_dump(),
         questions=[
-            QuestionOut(id=q["id"], question=q["question"], options=q["options"], source_page=q["source_page"])
+            QuestionOut(
+                id=q["id"],
+                question=q["question"],
+                options=q["options"],
+                source_page=q["source_page"],
+            )
             for q in doc["questions"]
         ],
         attempts=[to_attempt_out(a) for a in attempts],
@@ -122,6 +127,8 @@ class QuizAttemptRepository:
         return doc
 
     async def list_for_quiz(self, quiz_id: str, user_id: str) -> list[MongoDoc]:
-        return await self._col.find({"quiz_id": quiz_id, "user_id": user_id}).sort(
-            "created_at", DESCENDING
-        ).to_list(length=None)
+        return (
+            await self._col.find({"quiz_id": quiz_id, "user_id": user_id})
+            .sort("created_at", DESCENDING)
+            .to_list(length=None)
+        )

@@ -7,9 +7,9 @@ from typing import Any
 
 import httpx
 import pytest
+from app.services.container import Services
 from bson import ObjectId
 
-from app.services.container import Services
 from tests.conftest import FakeMongo, FakeVectorStore, make_docx, make_pdf
 
 PDF_PAGES = [f"Page {i}: dependency injection explained. " * 20 for i in range(1, 4)]
@@ -96,7 +96,9 @@ async def test_per_user_quota(client: httpx.AsyncClient, settings: Any) -> None:
     assert response.status_code == 409
 
 
-async def test_global_quota(client: httpx.AsyncClient, fake_mongo: FakeMongo, settings: Any) -> None:
+async def test_global_quota(
+    client: httpx.AsyncClient, fake_mongo: FakeMongo, settings: Any
+) -> None:
     settings.max_documents_total = 1
     await insert_doc(fake_mongo, owner_id="someone-else")
     response = await upload(client, "a.pdf", make_pdf(PDF_PAGES))
@@ -143,7 +145,9 @@ async def test_delete_cascades(
 ) -> None:
     doc_id = (await upload(client, "notes.pdf", make_pdf(PDF_PAGES))).json()["id"]
     db = fake_mongo.db
-    session = await db["chat_sessions"].insert_one({"user_id": "local-dev-user", "document_id": doc_id})
+    session = await db["chat_sessions"].insert_one(
+        {"user_id": "local-dev-user", "document_id": doc_id}
+    )
     await db["chat_messages"].insert_one({"session_id": str(session.inserted_id), "content": "hi"})
     quiz = await db["quizzes"].insert_one({"user_id": "local-dev-user", "document_id": doc_id})
     await db["quiz_attempts"].insert_one({"quiz_id": str(quiz.inserted_id), "score": 1})

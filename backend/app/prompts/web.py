@@ -85,5 +85,9 @@ WEB_LIMIT_REACHED_NOTICE = (
     "Web search is unavailable because you have reached today's web search limit. "
     "This answer uses your document only."
 )
-WEB_UNAVAILABLE_NOTICE = "Web search was unavailable right now, so this answer uses your document only."
-WEB_NO_RESULTS_NOTICE = "No relevant web results were found, so this answer uses your document only."
+WEB_UNAVAILABLE_NOTICE = (
+    "Web search was unavailable right now, so this answer uses your document only."
+)
+WEB_NO_RESULTS_NOTICE = (
+    "No relevant web results were found, so this answer uses your document only."
+)

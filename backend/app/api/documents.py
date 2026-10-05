@@ -49,6 +49,8 @@ async def get_document(
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_document(document_id: str, user: CurrentUserDep, service: DocumentServiceDep) -> None:
+async def delete_document(
+    document_id: str, user: CurrentUserDep, service: DocumentServiceDep
+) -> None:
     """Delete the document, its Pinecone namespace, and all related chats/quizzes."""
     await service.delete(user.user_id, document_id)

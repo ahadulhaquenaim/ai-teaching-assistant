@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from app.config import Settings
 from app.db.repositories.web_search import WebSearchCacheRepository, WebSearchUsageRepository
 from app.services.web_search import (
@@ -16,10 +15,13 @@ from app.services.web_search import (
     query_hash,
     sanitize_web_text,
 )
+
 from tests.conftest import FakeMongo, FakeSearchProvider
 
 
-def make_service(settings: Settings, provider: FakeSearchProvider | None = None) -> tuple[WebSearchService, FakeSearchProvider, WebSearchUsageRepository]:
+def make_service(
+    settings: Settings, provider: FakeSearchProvider | None = None
+) -> tuple[WebSearchService, FakeSearchProvider, WebSearchUsageRepository]:
     mongo = FakeMongo()
     provider = provider or FakeSearchProvider()
     usage = WebSearchUsageRepository(mongo.db)
@@ -123,7 +125,9 @@ def test_sanitize_truncates() -> None:
 
 
 # ---------------------------------------------------------- DuckDuckGo parse
-async def test_ddg_provider_filters_and_sanitizes(settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_ddg_provider_filters_and_sanitizes(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     provider = DuckDuckGoProvider(settings)
     raw = [
         {"title": "Good <b>result</b>", "href": "https://a.com/x", "body": "Useful text " * 5},
@@ -139,7 +143,9 @@ async def test_ddg_provider_filters_and_sanitizes(settings: Settings, monkeypatc
     assert "<" not in results[0].title
 
 
-async def test_ddg_provider_retries_rate_limit(settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_ddg_provider_retries_rate_limit(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     from ddgs.exceptions import RatelimitException
 
     provider = DuckDuckGoProvider(settings)

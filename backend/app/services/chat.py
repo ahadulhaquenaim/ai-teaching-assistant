@@ -104,7 +104,9 @@ class ChatService:
         except LLMRateLimitError as exc:
             raise ServiceUnavailableError(str(exc)) from exc
         except LLMError as exc:
-            raise ServiceUnavailableError("The AI model is temporarily unavailable. Please try again.") from exc
+            raise ServiceUnavailableError(
+                "The AI model is temporarily unavailable. Please try again."
+            ) from exc
         except Exception as exc:
             # Embedding/Pinecone failures after retries.
             logger.exception("qa graph failed", extra={"session_id": session_id})

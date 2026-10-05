@@ -58,7 +58,9 @@ class VectorStore(Protocol):
         self, document_id: str, vector: list[float], top_k: int
     ) -> list[RetrievedChunk]: ...
 
-    async def fetch_chunks(self, document_id: str, chunk_indices: Sequence[int]) -> list[RetrievedChunk]: ...
+    async def fetch_chunks(
+        self, document_id: str, chunk_indices: Sequence[int]
+    ) -> list[RetrievedChunk]: ...
 
     async def delete_document(self, document_id: str) -> None: ...
 
@@ -117,7 +119,9 @@ class PineconeVectorStore:
                 )
             )
 
-    async def query(self, document_id: str, vector: list[float], top_k: int) -> list[RetrievedChunk]:
+    async def query(
+        self, document_id: str, vector: list[float], top_k: int
+    ) -> list[RetrievedChunk]:
         """Similarity search restricted to one document's namespace."""
         index = await self._get_index()
         response = await with_retry(
@@ -141,7 +145,9 @@ class PineconeVectorStore:
             )
         return results
 
-    async def fetch_chunks(self, document_id: str, chunk_indices: Sequence[int]) -> list[RetrievedChunk]:
+    async def fetch_chunks(
+        self, document_id: str, chunk_indices: Sequence[int]
+    ) -> list[RetrievedChunk]:
         """Fetch specific chunks by index (used to sample across a whole document)."""
         if not chunk_indices:
             return []

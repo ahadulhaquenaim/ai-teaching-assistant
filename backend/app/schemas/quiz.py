@@ -48,7 +48,9 @@ class SupportCheck(BaseModel):
 
 class ShortAnswerGrade(BaseModel):
     question_id: int
-    score: float = Field(ge=0.0, le=1.0, description="0 = wrong, 1 = fully correct, partial allowed")
+    score: float = Field(
+        ge=0.0, le=1.0, description="0 = wrong, 1 = fully correct, partial allowed"
+    )
     feedback: str = Field(description="One or two sentences of feedback for the student")
 
 

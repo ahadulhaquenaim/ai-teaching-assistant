@@ -25,7 +25,13 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
-_RATE_LIMIT_MARKERS = ("rate limit", "rate_limit", "resource_exhausted", "quota", "too many requests")
+_RATE_LIMIT_MARKERS = (
+    "rate limit",
+    "rate_limit",
+    "resource_exhausted",
+    "quota",
+    "too many requests",
+)
 
 
 def extract_status_code(exc: BaseException) -> int | None:

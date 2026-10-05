@@ -7,10 +7,16 @@ from typing import Any
 
 import httpx
 import pytest
-
-from app.schemas.quiz import GeneratedQuestion, GeneratedQuiz, ShortAnswerGrade, ShortAnswerGrades, SupportCheck
+from app.schemas.quiz import (
+    GeneratedQuestion,
+    GeneratedQuiz,
+    ShortAnswerGrade,
+    ShortAnswerGrades,
+    SupportCheck,
+)
 from app.services.container import Services
 from app.services.llm import LLMRateLimitError
+
 from tests.conftest import FakeMongo, make_pdf
 
 PDF = make_pdf(["Dependency injection passes dependencies in. " * 20] * 3)
@@ -42,7 +48,9 @@ def quiz_llm(services: Services) -> Any:
         if schema is SupportCheck:
             return SupportCheck(supported_ids=list(range(1, 21)))
         if schema is ShortAnswerGrades:
-            return ShortAnswerGrades(grades=[ShortAnswerGrade(**g) for g in llm.short_grades.values()])  # type: ignore[attr-defined]
+            return ShortAnswerGrades(
+                grades=[ShortAnswerGrade(**g) for g in llm.short_grades.values()]
+            )  # type: ignore[attr-defined]
         return schema(relevant_ids=[1, 2, 3])
 
     llm.structured_responder = structured  # type: ignore[attr-defined]
@@ -56,13 +64,20 @@ async def ready_doc(client: httpx.AsyncClient) -> str:
 
 
 async def create(client: httpx.AsyncClient, doc_id: str, **overrides: Any) -> httpx.Response:
-    body = {"document_id": doc_id, "difficulty": "easy", "number_of_questions": 3, "question_type": "mcq"}
+    body = {
+        "document_id": doc_id,
+        "difficulty": "easy",
+        "number_of_questions": 3,
+        "question_type": "mcq",
+    }
     body.update(overrides)
     return await client.post("/quizzes", json=body)
 
 
 # ------------------------------------------------------------------ create
-async def test_create_quiz_hides_answers(client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any) -> None:
+async def test_create_quiz_hides_answers(
+    client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
+) -> None:
     response = await create(client, ready_doc, topic="dependency injection")
     assert response.status_code == 201, response.text
     quiz = response.json()
@@ -78,28 +93,42 @@ async def test_too_many_questions(client: httpx.AsyncClient, ready_doc: str, set
     assert response.status_code == 422
 
 
-async def test_generation_failure_is_422(client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any) -> None:
+async def test_generation_failure_is_422(
+    client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
+) -> None:
     quiz_llm.generated = []
     response = await create(client, ready_doc)
     assert response.status_code == 422
     assert "Could not generate" in response.json()["error"]["message"]
 
 
-async def test_rate_limited_generation_is_503(client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any) -> None:
+async def test_rate_limited_generation_is_503(
+    client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
+) -> None:
     quiz_llm.fail = LLMRateLimitError("rate-limited")
     assert (await create(client, ready_doc)).status_code == 503
 
 
-async def test_cannot_quiz_other_users_document(client: httpx.AsyncClient, fake_mongo: FakeMongo) -> None:
+async def test_cannot_quiz_other_users_document(
+    client: httpx.AsyncClient, fake_mongo: FakeMongo
+) -> None:
     result = await fake_mongo.db["documents"].insert_one(
-        {"owner_id": "someone-else", "filename": "x.pdf", "file_type": "pdf", "status": "ready",
-         "chunk_count": 3, "created_at": datetime.now(UTC)}
+        {
+            "owner_id": "someone-else",
+            "filename": "x.pdf",
+            "file_type": "pdf",
+            "status": "ready",
+            "chunk_count": 3,
+            "created_at": datetime.now(UTC),
+        }
     )
     assert (await create(client, str(result.inserted_id))).status_code == 404
 
 
 # ------------------------------------------------------------------ submit
-async def test_submit_mcq_exact_scoring(client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any) -> None:
+async def test_submit_mcq_exact_scoring(
+    client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
+) -> None:
     quiz = (await create(client, ready_doc)).json()
     answers = [
         {"question_id": 0, "answer": OPTS[0]},  # correct
@@ -122,9 +151,13 @@ async def test_submit_mcq_exact_scoring(client: httpx.AsyncClient, ready_doc: st
     assert [a["id"] for a in stored["attempts"]] == [attempt["id"]]
 
 
-async def test_submit_unknown_question_id(client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any) -> None:
+async def test_submit_unknown_question_id(
+    client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
+) -> None:
     quiz = (await create(client, ready_doc)).json()
-    response = await client.post(f"/quizzes/{quiz['id']}/submit", json={"answers": [{"question_id": 42, "answer": "x"}]})
+    response = await client.post(
+        f"/quizzes/{quiz['id']}/submit", json={"answers": [{"question_id": 42, "answer": "x"}]}
+    )
     assert response.status_code == 422
 
 
@@ -132,12 +165,19 @@ async def test_submit_short_answer_llm_scoring(
     client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
 ) -> None:
     quiz_llm.generated = questions(2, short=True)
-    quiz = (await create(client, ready_doc, question_type="short_answer", number_of_questions=2)).json()
+    quiz = (
+        await create(client, ready_doc, question_type="short_answer", number_of_questions=2)
+    ).json()
     quiz_llm.short_grades = {0: {"question_id": 0, "score": 0.5, "feedback": "Partly right."}}
 
     response = await client.post(
         f"/quizzes/{quiz['id']}/submit",
-        json={"answers": [{"question_id": 0, "answer": "You pass things in"}, {"question_id": 1, "answer": "  "}]},
+        json={
+            "answers": [
+                {"question_id": 0, "answer": "You pass things in"},
+                {"question_id": 1, "answer": "  "},
+            ]
+        },
     )
 
     attempt = response.json()
@@ -153,9 +193,13 @@ async def test_short_answer_grading_failure_saves_nothing(
     client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
 ) -> None:
     quiz_llm.generated = questions(1, short=True)
-    quiz = (await create(client, ready_doc, question_type="short_answer", number_of_questions=1)).json()
+    quiz = (
+        await create(client, ready_doc, question_type="short_answer", number_of_questions=1)
+    ).json()
     quiz_llm.fail = LLMRateLimitError("rate-limited")
-    response = await client.post(f"/quizzes/{quiz['id']}/submit", json={"answers": [{"question_id": 0, "answer": "x"}]})
+    response = await client.post(
+        f"/quizzes/{quiz['id']}/submit", json={"answers": [{"question_id": 0, "answer": "x"}]}
+    )
     assert response.status_code == 503
     quiz_llm.fail = False
     assert (await client.get(f"/quizzes/{quiz['id']}")).json()["attempts"] == []
@@ -164,18 +208,32 @@ async def test_short_answer_grading_failure_saves_nothing(
 # --------------------------------------------------------------- ownership
 async def test_other_users_quiz_is_404(client: httpx.AsyncClient, fake_mongo: FakeMongo) -> None:
     result = await fake_mongo.db["quizzes"].insert_one(
-        {"user_id": "someone-else", "document_id": "d", "topic": None, "difficulty": "easy",
-         "question_type": "mcq", "questions": [], "created_at": datetime.now(UTC)}
+        {
+            "user_id": "someone-else",
+            "document_id": "d",
+            "topic": None,
+            "difficulty": "easy",
+            "question_type": "mcq",
+            "questions": [],
+            "created_at": datetime.now(UTC),
+        }
     )
     quiz_id = str(result.inserted_id)
     assert (await client.get(f"/quizzes/{quiz_id}")).status_code == 404
-    assert (await client.post(f"/quizzes/{quiz_id}/submit", json={"answers": []})).status_code == 404
+    assert (
+        await client.post(f"/quizzes/{quiz_id}/submit", json={"answers": []})
+    ).status_code == 404
     assert (await client.get("/quizzes")).json()["quizzes"] == []
 
 
-async def test_list_filters_by_document(client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any) -> None:
+async def test_list_filters_by_document(
+    client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
+) -> None:
     quiz = (await create(client, ready_doc)).json()
-    assert [q["id"] for q in (await client.get("/quizzes", params={"document_id": ready_doc})).json()["quizzes"]] == [quiz["id"]]
+    assert [
+        q["id"]
+        for q in (await client.get("/quizzes", params={"document_id": ready_doc})).json()["quizzes"]
+    ] == [quiz["id"]]
     assert (await client.get("/quizzes", params={"document_id": "other"})).json()["quizzes"] == []
 
 
@@ -183,13 +241,17 @@ async def test_deleting_document_deletes_quizzes_and_attempts(
     client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any, fake_mongo: FakeMongo
 ) -> None:
     quiz = (await create(client, ready_doc)).json()
-    await client.post(f"/quizzes/{quiz['id']}/submit", json={"answers": [{"question_id": 0, "answer": OPTS[0]}]})
+    await client.post(
+        f"/quizzes/{quiz['id']}/submit", json={"answers": [{"question_id": 0, "answer": OPTS[0]}]}
+    )
     assert (await client.delete(f"/documents/{ready_doc}")).status_code == 204
     assert await fake_mongo.db["quizzes"].count_documents({}) == 0
     assert await fake_mongo.db["quiz_attempts"].count_documents({}) == 0
 
 
-async def test_mcq_options_are_shuffled(client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any) -> None:
+async def test_mcq_options_are_shuffled(
+    client: httpx.AsyncClient, ready_doc: str, quiz_llm: Any
+) -> None:
     quiz_llm.generated = questions(8)  # correct answer is always OPTS[0] from the "LLM"
     import app.core.dependencies  # noqa: F401  (service built per request)
 

@@ -8,21 +8,38 @@ so this page shows a welcome screen instead of "Sign in with Google".
 
 from __future__ import annotations
 
-import streamlit as st
-
 import api_client
+import streamlit as st
 from ui import apply_style
 
 st.set_page_config(page_title="AI Teaching Assistant", page_icon=":material/school:", layout="wide")
 apply_style()
 
 STEPS = [
-    ("1", "Upload", "Add a PDF or DOCX. It's indexed in the background.",
-     "documents", "Upload a document", ":material/upload_file:"),
-    ("2", "Ask", "Get answers that cite the pages they come from.",
-     "chat", "Start a chat", ":material/chat:"),
-    ("3", "Test yourself", "Generate a quiz and see an explanation for every answer.",
-     "quiz", "Make a quiz", ":material/quiz:"),
+    (
+        "1",
+        "Upload",
+        "Add a PDF or DOCX. It's indexed in the background.",
+        "documents",
+        "Upload a document",
+        ":material/upload_file:",
+    ),
+    (
+        "2",
+        "Ask",
+        "Get answers that cite the pages they come from.",
+        "chat",
+        "Start a chat",
+        ":material/chat:",
+    ),
+    (
+        "3",
+        "Test yourself",
+        "Generate a quiz and see an explanation for every answer.",
+        "quiz",
+        "Make a quiz",
+        ":material/quiz:",
+    ),
 ]
 
 # Left: product name, promise, actions. Right: a preview of a real chat turn and quiz question.
@@ -64,8 +81,10 @@ def home() -> None:
     with st.container(key="steps"):
         for col, (num, title, body, page, cta, icon) in zip(st.columns(3, gap="large"), STEPS):
             with col:
-                st.html(f'<p class="step-title"><span class="step-num">{num}</span>{title}</p>'
-                        f'<p class="step-body">{body}</p>')
+                st.html(
+                    f'<p class="step-title"><span class="step-num">{num}</span>{title}</p>'
+                    f'<p class="step-body">{body}</p>'
+                )
                 st.page_link(pages[page], label=cta, icon=icon)
 
     with st.spinner("Connecting to the server..."):
@@ -84,7 +103,9 @@ quiz_page = st.Page("pages/quiz.py", title="Quiz", icon=":material/quiz:")
 # Rendered before the page so it always shows; CSS (ui.STYLE) pins it to the sidebar bottom,
 # below anything a page adds (e.g. the chat list).
 with st.sidebar.container(key="side-footer"):
-    st.html('<div class="side-user"><span class="side-avatar" aria-hidden="true">LD</span>'
-            '<div><p class="side-name">Local dev user</p><p class="side-note">Sign-in is off</p></div></div>')
+    st.html(
+        '<div class="side-user"><span class="side-avatar" aria-hidden="true">LD</span>'
+        '<div><p class="side-name">Local dev user</p><p class="side-note">Sign-in is off</p></div></div>'
+    )
 
 st.navigation([home_page, documents_page, chat_page, quiz_page]).run()

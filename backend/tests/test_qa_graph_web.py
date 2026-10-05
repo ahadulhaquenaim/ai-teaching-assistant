@@ -16,12 +16,19 @@ from app.prompts.web import (
 )
 from app.services.vectorstore import ChunkRecord
 from app.services.web_search import WebResult, WebSearchOutcome, WebSearchStatus
+
 from tests.conftest import FakeEmbedder, FakeLLM, FakeVectorStore
 
 DOC = "doc-1"
 WEB = [
-    WebResult("FastAPI docs", "https://fastapi.tiangolo.com/deps", "FastAPI Depends resolves dependencies " * 3),
-    WebResult("Wikipedia", "https://en.wikipedia.org/wiki/DI", "Dependency injection is a technique " * 3),
+    WebResult(
+        "FastAPI docs",
+        "https://fastapi.tiangolo.com/deps",
+        "FastAPI Depends resolves dependencies " * 3,
+    ),
+    WebResult(
+        "Wikipedia", "https://en.wikipedia.org/wiki/DI", "Dependency injection is a technique " * 3
+    ),
 ]
 
 TWO_SECTION_ANSWER = (
@@ -154,7 +161,9 @@ async def test_llm_grader_can_drop_all_web_results() -> None:
 
 
 async def test_web_only_when_document_has_nothing() -> None:
-    graph, llm, _ = await make_graph(WebSearchOutcome(WebSearchStatus.USED, WEB), doc_relevant=False)
+    graph, llm, _ = await make_graph(
+        WebSearchOutcome(WebSearchStatus.USED, WEB), doc_relevant=False
+    )
     llm.responder_text = None
     original = llm.responder
 
@@ -173,7 +182,9 @@ async def test_web_only_when_document_has_nothing() -> None:
 
 
 async def test_nothing_anywhere_is_not_covered_with_notice() -> None:
-    graph, llm, _ = await make_graph(WebSearchOutcome(WebSearchStatus.LIMIT_REACHED), doc_relevant=False)
+    graph, llm, _ = await make_graph(
+        WebSearchOutcome(WebSearchStatus.LIMIT_REACHED), doc_relevant=False
+    )
     result = await run(graph)
     assert result.answer.startswith(NOT_COVERED_ANSWER)
     assert WEB_LIMIT_REACHED_NOTICE in result.answer
@@ -204,7 +215,9 @@ async def test_uncited_web_results_are_not_sources() -> None:
 async def test_off_topic_generated_query_falls_back_to_question() -> None:
     graph, llm, searcher = await make_graph(WebSearchOutcome(WebSearchStatus.USED, WEB))
     original = llm.responder
-    llm.responder = lambda m: "user safety guidelines" if system_of(m) == SEARCH_QUERY_SYSTEM_PROMPT else original(m)
+    llm.responder = lambda m: (
+        "user safety guidelines" if system_of(m) == SEARCH_QUERY_SYSTEM_PROMPT else original(m)
+    )
     await run(graph)
     assert searcher.calls == [("u1", "How does FastAPI do DI?")]
 
@@ -213,5 +226,7 @@ def test_query_is_on_topic() -> None:
     from app.graphs.qa_graph import query_is_on_topic
 
     assert query_is_on_topic("fastapi latest version", "What is the latest FastAPI version?")
-    assert not query_is_on_topic("user safety", "What is the latest FastAPI version?", "Notes on DI")
+    assert not query_is_on_topic(
+        "user safety", "What is the latest FastAPI version?", "Notes on DI"
+    )
     assert not query_is_on_topic("", "anything")

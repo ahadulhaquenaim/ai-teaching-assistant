@@ -77,7 +77,9 @@ async def read_limited(upload: UploadFile, max_bytes: int) -> bytes:
 
 
 class DocumentService:
-    def __init__(self, settings: Settings, repo: DocumentRepository, vector_store: VectorStore) -> None:
+    def __init__(
+        self, settings: Settings, repo: DocumentRepository, vector_store: VectorStore
+    ) -> None:
         self._settings = settings
         self._repo = repo
         self._vectors = vector_store

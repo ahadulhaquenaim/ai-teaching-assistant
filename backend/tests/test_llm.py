@@ -5,9 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from langchain_core.messages import AIMessage, HumanMessage
-from pydantic import BaseModel
-
 from app.config import Settings
 from app.services.llm import (
     LLMCapabilityError,
@@ -16,6 +13,8 @@ from app.services.llm import (
     LLMService,
     build_chat_model,
 )
+from langchain_core.messages import AIMessage, HumanMessage
+from pydantic import BaseModel
 
 
 def make_settings(**overrides: Any) -> Settings:
@@ -119,7 +118,9 @@ async def test_provider_error_message_hides_details() -> None:
 
 
 async def test_list_content_is_flattened() -> None:
-    reply = AIMessage(content=[{"type": "text", "text": "Hello "}, {"type": "text", "text": "there"}])
+    reply = AIMessage(
+        content=[{"type": "text", "text": "Hello "}, {"type": "text", "text": "there"}]
+    )
     service = LLMService(StubModel(reply))  # type: ignore[arg-type]
     assert await service.generate_text(MESSAGES) == "Hello there"
 
@@ -155,7 +156,11 @@ def test_openrouter_timeout_is_milliseconds() -> None:
 
 @pytest.mark.parametrize(
     ("model", "effort", "expected"),
-    [("gemini-3.6-flash", "low", "low"), ("gemini-2.5-flash", "low", None), ("gemini-3.6-flash", "none", None)],
+    [
+        ("gemini-3.6-flash", "low", "low"),
+        ("gemini-2.5-flash", "low", None),
+        ("gemini-3.6-flash", "none", None),
+    ],
 )
 def test_gemini_thinking_level(model: str, effort: str, expected: str | None) -> None:
     chat = build_chat_model("gemini", model, make_settings(llm_reasoning_effort=effort))

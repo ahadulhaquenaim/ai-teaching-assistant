@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from app.graphs.qa_graph import (
     ChatTurn,
     GradeResult,
@@ -20,6 +19,7 @@ from app.prompts.qa import (
     REWRITE_SYSTEM_PROMPT,
 )
 from app.services.vectorstore import ChunkRecord
+
 from tests.conftest import FakeEmbedder, FakeLLM, FakeVectorStore
 
 DOC = "doc-1"
@@ -62,7 +62,9 @@ async def run(graph: QAGraph, question: str = "What is DI?", history: list[ChatT
 # ------------------------------------------------------------------ happy path
 async def test_answer_with_page_citations() -> None:
     graph, llm, embedder, store = await make_graph()
-    llm.responder = answer_with("DI passes dependencies in (Page 1). FastAPI uses Depends (Page 3).")
+    llm.responder = answer_with(
+        "DI passes dependencies in (Page 1). FastAPI uses Depends (Page 3)."
+    )
 
     result = await run(graph)
 
@@ -85,7 +87,9 @@ async def test_answer_context_is_delimited_and_paged() -> None:
 
 async def test_follow_up_is_rewritten_with_history() -> None:
     graph, llm, embedder, _ = await make_graph()
-    llm.responder = answer_with("It decouples code (Page 1).", rewrite="Why is dependency injection useful?")
+    llm.responder = answer_with(
+        "It decouples code (Page 1).", rewrite="Why is dependency injection useful?"
+    )
     history: list[ChatTurn] = [
         {"role": "user", "content": "What is dependency injection?"},
         {"role": "assistant", "content": "Passing dependencies in (Page 1)."},
@@ -173,7 +177,9 @@ async def test_model_saying_not_covered_has_no_sources() -> None:
 async def test_empty_namespace_is_not_covered() -> None:
     llm, embedder, store = FakeLLM(), FakeEmbedder(), FakeVectorStore()
     graph = QAGraph(llm, embedder, store)
-    result = await graph.run(question="q", chat_history=[], document_id="empty", document_summary=None)
+    result = await graph.run(
+        question="q", chat_history=[], document_id="empty", document_summary=None
+    )
     assert result.answer == NOT_COVERED_ANSWER
 
 
